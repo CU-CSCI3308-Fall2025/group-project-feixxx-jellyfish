@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Home | MySite</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <h1 class="logo">MySite</h1>
+            <nav>
+                <a href="index.html">Home</a>
+                <a href="views/login.html">Login</a>
+                <a href="views/register.html">Register</a>
+            </nav>
+        </div>
+    </header>
+
+
+<main class="container">
+    <section class="hero">
+        <h2>Welcome to Verdant</h2>
+        <div class="search-container">
+            <form action="/search" method="GET" class="search-form">
+                <select name="category" id="category" class="search-dropdown">
+                <option value="Season">Bloom Season</option>
+                <option value="Summer">Summer</option>
+                <option value="Winter">Winter</option>
+                <option value="Autumn">Autumn</option>
+                <option value="Spring">Spring</option>
+                <option value="All">All Seasons</option>
+                </select>
+
+                <input
+                type="text"
+                name="query"
+                placeholder="Search..."
+                class="search-input"
+                required
+                />
+
+                <button type="submit" class="search-button">Search</button>
+            </form>
+        </div>
+        <p>Demo homepage with links to login and register views.</p>
+        <p>
+            <a class="btn" href="views/register.html">Get started</a>
+            <a class="btn ghost" href="views/login.html">Sign in</a>
+        </p>
+    </section>
+</main>
+
+
+<footer class="site-footer">
+<div class="container">© Verdant — Demo</div>
+</footer>
+</body>
+</html>
