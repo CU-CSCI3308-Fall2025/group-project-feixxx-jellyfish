@@ -1,5 +1,5 @@
 // Default fallback location (if geolocation unavailable/denied)
-const FALLBACK_COORDS = [39.7392, 104.9903]; const FALLBACK_ZOOM = 13;
+const FALLBACK_COORDS = [39.7392, -104.9903]; const FALLBACK_ZOOM = 13;
 
 const map = L.map('map').setView(FALLBACK_COORDS, FALLBACK_ZOOM);
 
@@ -7,7 +7,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-// UI elements to show to user (optional)
+// UI elements to show to user 
 let userMarker, accuracyCircle;
 
 // Try Leaflet's locate wrapper which uses the Geolocation API
@@ -45,19 +45,19 @@ map.on('locationfound', function (e) {
   console.log(`Located at ${latlng.lat}, ${latlng.lng} (±${Math.round(accuracy)} m)`);
 });
 
+
 // On error (permission denied, timeout, etc.)
 map.on('locationerror', function (e) {
   console.warn('Location error:', e.message);
-  // Center to fallback if desired
+  // Center to fallback
   map.setView(FALLBACK_COORDS, FALLBACK_ZOOM);
-  // Optionally show a notice to users:
-  // e.g., show a toast / alert: "Could not get location — using default map center."
+  
 });
 
 // Call locate on load (this will prompt the user)
 locateUser();
 
-// Optional: provide a button to re-locate manually
+//Add button to return to user location
 const locateButton = L.control({ position: 'topleft' });
 locateButton.onAdd = function () {
   const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
@@ -72,3 +72,22 @@ locateButton.onAdd = function () {
   return div;
 };
 locateButton.addTo(map);
+
+// Define marker icons
+const myPrivateIcon = L.icon({
+  iconUrl: 'https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png',
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+});
+
+const myPublicIcon = L.icon({
+  iconUrl: 'https://maps.gstatic.com/mapfiles/ms2/micons/green-dot.png',
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+});
+
+const othersIcon = L.icon({
+  iconUrl: 'https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png',
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+});
