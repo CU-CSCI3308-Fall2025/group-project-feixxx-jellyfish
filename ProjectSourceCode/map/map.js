@@ -91,3 +91,49 @@ const othersIcon = L.icon({
   iconSize: [32, 32],
   iconAnchor: [16, 32],
 });
+
+// Create map layers
+const myPlantsLayer = L.layerGroup().addTo(map);
+const publicPlantsLayer = L.layerGroup().addTo(map);
+
+// Create layer control
+const layersControl = L.control.layers({}, {
+  "My Plants": myPlantsLayer,
+  "Public Plants": publicPlantsLayer
+}).addTo(map);
+
+
+//debug - remove later
+console.log("Plant logs:", plantLogs);
+console.log("Current user ID:", currentUserId);
+
+// Loop through data and add specific icons
+plantLogs.forEach(plant => {
+  const popupHtml = `
+    <div style="text-align:center;">
+      <img src="${plant.imgUrl}" alt="${plant.name}" width="120" style="border-radius:8px;"><br>
+      <b>${plant.name}</b><br>
+      <em>${plant.description}</em><br>
+      <a href="/plant/${plant.id}" target="_blank">View full log</a>
+    </div>
+  `;
+
+  let icon, targetLayer;
+
+  if (plant.userId === currentUserId) {
+    if (plant.isPublic) {
+      icon = myPublicIcon;
+      targetLayer = myPlantsLayer;
+    } else {
+      icon = myPrivateIcon;
+      targetLayer = myPlantsLayer;
+    }
+  } else {
+    icon = othersIcon;
+    targetLayer = publicPlantsLayer;
+  }
+
+  L.marker([plant.lat, plant.lng], { icon })
+    .addTo(targetLayer)
+    .bindPopup(popupHtml);
+});
