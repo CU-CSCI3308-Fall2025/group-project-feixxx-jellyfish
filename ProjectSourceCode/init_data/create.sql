@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS plants(
-    
-);
+INSERT INTO users (username, password) VALUES
+('alice', 'alicepassword'),
+('bob', 'bobpassword'),
+('charlie', 'charliepassword');
