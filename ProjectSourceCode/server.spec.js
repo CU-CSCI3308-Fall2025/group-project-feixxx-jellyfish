@@ -15,7 +15,7 @@ describe('Testing Register API', () => {
     chai
       .request(server)
       .post('/register')
-      .send({id: 1, username: 'ExistingUser', password: 'password123'})
+      .send({id: 1, username: 'alice', password: 'password123'})
       .end((err, res) => {
         expect(res).to.have.status(400);
         expect(res.body.message).to.equals('User already exists');
