@@ -12,8 +12,8 @@ require('dotenv').config();
 // Section 2 : Connect to DB
 // *****************************************************
 const dbConfig = {
-  host: 'localhost',
-  port: 5432,
+  host: process.env.PGHOST || 'localhost',
+  port: process.env.PGPORT || 5432,
   database: process.env.POSTGRES_DB,
   user: process.env.POSTGRES_USER,
   password: process.env.POSTGRES_PASSWORD,
@@ -63,6 +63,57 @@ app.get('/login', (req, res) => {
 });
 
 app.post('/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).render('pages/login', {
+        layout: 'main',
+        title: 'Plant Logger — Login',
+        error: 'Please enter both username and password.'
+      });
+    }
+
+    // 1) Look up user
+    const user = await db.oneOrNone(
+      'SELECT id, username, password_hash FROM users WHERE username = $1',
+      [username]
+    );
+
+    // 2) If no such username ⇒ show Register button
+    if (!user) {
+      return res.status(404).render('pages/login', {
+        layout: 'main',
+        title: 'Plant Logger — Login',
+        noUser: true,                 // flag used by template to show the button
+        enteredUsername: username     // prefill field
+      });
+    }
+
+    // 3) If exists ⇒ compare password
+    const ok = await bcrypt.compare(password, user.password_hash);
+    if (!ok) {
+      return res.status(401).render('pages/login', {
+        layout: 'main',
+        title: 'Plant Logger — Login',
+        error: 'Invalid password.',
+        enteredUsername: username
+      });
+    }
+
+    // 4) Success ⇒ set session + redirect to home
+    req.session.user = { id: user.id, username: user.username };
+    req.session.save(() => res.redirect('/'));
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).render('pages/login', {
+      layout: 'main',
+      title: 'Plant Logger — Login',
+      error: 'Login failed. Please try again.'
+    });
+  }
+
+
 
 });
 
