@@ -1,4 +1,66 @@
-{{> head}}
-{{> nav}}
-{{{body}}}
-{{> footer}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="/styles.css">
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f4f7f5;
+      color: #222;
+      margin: 0;
+    }
+    header {
+      background: #9ecfa7;
+      color: #fff;
+      padding: 1rem;
+    }
+    header h1 { margin: 0; }
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-right: 1rem;
+      font-weight: 600;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    main {
+      max-width: 700px;
+      margin: 2rem auto;
+      background: white;
+      border-radius: 10px;
+      padding: 2rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      color: #777;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Plant Logger</h1>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/login">Login</a>
+      <a href="/register">Register</a>
+      <a href="/logout">Logout</a>
+    </nav>
+  </header>
+
+  <main>
+    {{{body}}}   {{!-- This is where page-specific content appears --}}
+  </main>
+
+  <footer>
+    <p>🌱 Plant Logger &copy; 2025</p>
+  </footer>
+</body>
+</html>
