@@ -54,6 +54,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Section 4 : Routes
 // *****************************************************
 
+app.get('/welcome', (req, res) => {
+  res.json({status: 'success', message: 'Welcome!'});
+});
+
 app.get('/', (req, res) => {
   res.render('pages/index', { layout: 'main' });
 });
@@ -133,4 +137,6 @@ app.get('/logout', (req, res) => {
 // Section 5 : Start Server
 // *****************************************************
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+//app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+module.exports = app.listen(PORT);
