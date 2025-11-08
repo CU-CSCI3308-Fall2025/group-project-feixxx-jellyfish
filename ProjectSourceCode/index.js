@@ -126,7 +126,24 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', async (req, res) => {
-
+    const { username, password }= req.body;
+    
+    try {
+      const hash = await bcrypt.hash(req.body.password, 10);
+      
+      const query =`
+      INSERT INTO users (username, password)
+      VALUES ($1, $2)`;
+  
+      await db.none(query, [username, hash]);
+  
+      console.log('Succesful', username);
+      res.redirect('/login');
+    }
+    catch(err) {
+      console.log('Failed to register', err)
+      res.redirect('/register');
+    }
 });
 
 app.get('/logout', (req, res) => {
