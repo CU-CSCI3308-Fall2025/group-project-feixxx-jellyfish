@@ -138,11 +138,11 @@ app.post('/register', async (req, res) => {
       await db.none(query, [username, hash]);
   
       console.log('Succesful', username);
-      res.redirect('/login');
+      res.status(200).json({message:'Success'});
     }
     catch(err) {
-      console.log('Failed to register', err)
-      res.redirect('/register');
+      console.log('Failed to register', err);
+      res.status(400).json({message:'User already exists'});
     }
 });
 
