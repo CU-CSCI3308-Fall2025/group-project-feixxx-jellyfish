@@ -150,6 +150,10 @@ app.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
 });
 
+app.get('/map', (req, res) => {
+  res.render('pages/map', {layout: 'main', isMapPage: true});
+});
+
 // *****************************************************
 // Section 5 : Start Server
 // *****************************************************
