@@ -23,3 +23,26 @@ describe('Testing Register API', () => {
       });
     });
 });
+describe('Testing Login API', () => {
+  it('positive : /login', done => {
+    chai
+      .request(server)
+      .post('/login')
+      .send({username: 'alice', password: 'alicepassword'})
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        done();
+      });
+  });
+  it ('negative : /login wrong password', done => {
+    chai
+      .request(server)
+      .post('/login')
+      .send({username: 'alice ', password: 'wrongpassword'})
+      .end((err, res) => {
+        expect(res).to.have.status(401);
+        done();
+      });
+    });
+  }); 
+// 3) Login Route
