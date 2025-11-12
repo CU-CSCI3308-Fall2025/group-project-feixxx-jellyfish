@@ -1,0 +1,268 @@
+/* ----------------------------------
+   Global Variables & Typography
+---------------------------------- */
+
+:root {
+  --primary: #256428;
+  --primary-dark: #256428;
+  --accent: #81c784;
+  --background: #f9fafb;
+  --text: #333;
+  --light-text: #fff;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background: var(--background);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* Containers */
+.container {
+  width: 90%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ----------------------------------
+   Header
+---------------------------------- */
+
+.site-header {
+  background: var(--primary);
+  color: var(--light-text);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.site-header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo img {
+  height: 45px;
+}
+
+nav a {
+  color: var(--light-text);
+  text-decoration: none;
+  margin-left: 1.2rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+nav a:hover {
+  color: var(--accent);
+}
+
+/* ----------------------------------
+   Hero Section
+---------------------------------- */
+
+.hero {
+  position: relative;
+  text-align: center;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 2rem;
+  animation: fadeInUp 1s ease forwards;
+}
+
+.hero-img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  filter: brightness(70%);
+}
+
+.hero-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--light-text);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.hero h2 {
+  font-size: 2.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.hero p {
+  margin-bottom: 1.2rem;
+  font-size: 1.1rem;
+}
+
+.hero-buttons {
+  margin-top: 1rem;
+}
+
+/* Animation */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ----------------------------------
+   Search Form
+---------------------------------- */
+
+.search-form {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.search-dropdown,
+.search-input,
+.search-button {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+.search-input {
+  flex: 1 1 200px;
+  min-width: 200px;
+}
+
+.search-button {
+  background-color: var(--primary);
+  color: var(--light-text);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.search-button:hover {
+  background-color: var(--primary-dark);
+}
+
+/* ----------------------------------
+   Buttons
+---------------------------------- */
+
+.btn {
+  display: inline-block;
+  margin: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 5px;
+  background-color: var(--primary);
+  color: var(--light-text);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  background-color: var(--primary-dark);
+}
+
+.btn.ghost {
+  background-color: transparent;
+  color: var(--light-text);
+  border: 2px solid var(--light-text);
+}
+
+.btn.ghost:hover {
+  background-color: var(--light-text);
+  color: var(--primary);
+}
+
+/* ----------------------------------
+   Gallery
+---------------------------------- */
+
+.gallery {
+  text-align: center;
+  margin: 3rem 0;
+}
+
+.gallery h3 {
+  color: var(--primary);
+  font-size: 1.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.gallery-grid img {
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  transition: transform 0.3s ease;
+}
+
+.gallery-grid img:hover {
+  transform: scale(1.05);
+}
+
+/* ----------------------------------
+   Footer
+---------------------------------- */
+
+.site-footer {
+  background-color: var(--primary);
+  color: var(--light-text);
+  text-align: center;
+  padding: 1rem 0;
+  font-size: 0.9rem;
+  margin-top: 3rem;
+}
+
+.site-footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  text-decoration: underline;
+}
+
+/* ----------------------------------
+   Responsive
+---------------------------------- */
+
+@media (max-width: 700px) {
+  .site-header .container {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  nav {
+    margin-top: 0.5rem;
+  }
+
+  .hero h2 {
+    font-size: 1.8rem;
+  }
+
+  .search-form {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+    max-width: 250px;
+  }
+}

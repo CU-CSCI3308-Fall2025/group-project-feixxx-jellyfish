@@ -78,24 +78,24 @@ app.post('/login', async (req, res) => {
       });
     }
 
-    // 1) Look up user
+    // 1) Look up user by username
     const user = await db.oneOrNone(
-      'SELECT id, username, password_hash FROM users WHERE username = $1',
+      'SELECT id, username, password FROM users WHERE username = $1',
       [username]
     );
 
-    // 2) If no such username ⇒ show Register button
+    // 2) If user not found ⇒ suggest registration
     if (!user) {
       return res.status(404).render('pages/login', {
         layout: 'main',
         title: 'Plant Logger — Login',
-        noUser: true,                 // flag used by template to show the button
-        enteredUsername: username     // prefill field
+        noUser: true,
+        enteredUsername: username
       });
     }
 
-    // 3) If exists ⇒ compare password
-    const ok = await bcrypt.compare(password, user.password_hash);
+    // 3) Compare provided password to stored hash (password column)
+    const ok = await bcrypt.compare(password, user.password);
     if (!ok) {
       return res.status(401).render('pages/login', {
         layout: 'main',
@@ -105,9 +105,10 @@ app.post('/login', async (req, res) => {
       });
     }
 
-    // 4) Success ⇒ set session + redirect to home
+    // 4) Successful login ⇒ set session + redirect
     req.session.user = { id: user.id, username: user.username };
     req.session.save(() => res.redirect('/'));
+
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).render('pages/login', {
@@ -116,9 +117,6 @@ app.post('/login', async (req, res) => {
       error: 'Login failed. Please try again.'
     });
   }
-
-
-
 });
 
 app.get('/register', (req, res) => {
@@ -148,6 +146,10 @@ app.post('/register', async (req, res) => {
 
 app.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
+});
+
+app.get('/map', (req, res) => {
+  res.render('pages/map', {layout: 'main', isMapPage: true});
 });
 
 // *****************************************************
