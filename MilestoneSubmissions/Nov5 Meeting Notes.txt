@@ -1,0 +1,12 @@
+Maya: HTML format for registration page/method for index.js troubleshoot and ensure it works effectively
+Matthias: ENV file, issues setting up database, basic structure, Local databases only, 
+Felix: worked on getting map working, finds GPS location, plant logs exist, created valid testing for the map, next
+steps are database connection and log plant feature
+Ian: Finished homepage and index.js setup, Group with Maya and create DB schema.
+
+Next Week Tasks:
+create the log plants page
+Allow plant images to be uploaded when logging plant, Assume images are urls
+Create profile page with 10 most recent logged plants
+Finish database Schema
+Finish Style sheet
