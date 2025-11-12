@@ -154,6 +154,30 @@ app.get('/map', (req, res) => {
   res.render('pages/map', {layout: 'main', isMapPage: true});
 });
 
+app.get('/api/plants', async(req, res) => {
+  try {
+    if (!req.session.user){
+      return res.status(401).json({error: 'Not logged it'});
+    }
+
+    const currentUserID = req.session.user.id;
+
+    const myPlants = await db.any(
+      'SELECT id, user_id, name, is_public, latitude, longitude, description, image_url, date_observed, type FROM plants WHERE user_id = $1',
+      [currentUserId]
+    );
+
+    res.json({
+      currentUserId,
+      myPlants,
+      publicPlants
+    });
+  } catch (err) {
+    console.error('Error fetching plants', err);
+    res.status(500).json({error: "Server error"});
+  }
+});
+
 // *****************************************************
 // Section 5 : Start Server
 // *****************************************************
