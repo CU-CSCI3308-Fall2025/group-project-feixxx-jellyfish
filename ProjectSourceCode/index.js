@@ -54,6 +54,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Section 4 : Routes
 // *****************************************************
 
+app.get('/welcome', (req, res) => {
+  res.json({status: 'success', message: 'Welcome!'});
+});
+
 app.get('/', (req, res) => {
   res.render('pages/index', { layout: 'main' });
 });
@@ -74,24 +78,24 @@ app.post('/login', async (req, res) => {
       });
     }
 
-    // 1) Look up user
+    // 1) Look up user by username
     const user = await db.oneOrNone(
-      'SELECT id, username, password_hash FROM users WHERE username = $1',
+      'SELECT id, username, password FROM users WHERE username = $1',
       [username]
     );
 
-    // 2) If no such username ⇒ show Register button
+    // 2) If user not found ⇒ suggest registration
     if (!user) {
       return res.status(404).render('pages/login', {
         layout: 'main',
         title: 'Plant Logger — Login',
-        noUser: true,                 // flag used by template to show the button
-        enteredUsername: username     // prefill field
+        noUser: true,
+        enteredUsername: username
       });
     }
 
-    // 3) If exists ⇒ compare password
-    const ok = await bcrypt.compare(password, user.password_hash);
+    // 3) Compare provided password to stored hash (password column)
+    const ok = await bcrypt.compare(password, user.password);
     if (!ok) {
       return res.status(401).render('pages/login', {
         layout: 'main',
@@ -101,9 +105,10 @@ app.post('/login', async (req, res) => {
       });
     }
 
-    // 4) Success ⇒ set session + redirect to home
+    // 4) Successful login ⇒ set session + redirect
     req.session.user = { id: user.id, username: user.username };
     req.session.save(() => res.redirect('/'));
+
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).render('pages/login', {
@@ -112,9 +117,6 @@ app.post('/login', async (req, res) => {
       error: 'Login failed. Please try again.'
     });
   }
-
-
-
 });
 
 app.get('/register', (req, res) => {
@@ -122,7 +124,24 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', async (req, res) => {
-
+    const { username, password }= req.body;
+    
+    try {
+      const hash = await bcrypt.hash(req.body.password, 10);
+      
+      const query =`
+      INSERT INTO users (username, password)
+      VALUES ($1, $2)`;
+  
+      await db.none(query, [username, hash]);
+  
+      console.log('Succesful', username);
+      res.status(200).json({message:'Success'});
+    }
+    catch(err) {
+      console.log('Failed to register', err);
+      res.status(400).json({message:'User already exists'});
+    }
 });
 
 app.get('/logout', (req, res) => {
@@ -133,4 +152,6 @@ app.get('/logout', (req, res) => {
 // Section 5 : Start Server
 // *****************************************************
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+//app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+module.exports = app.listen(PORT);
