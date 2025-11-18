@@ -1,0 +1,30 @@
+<section class="card">
+  <h2>Recent Activity</h2>
+
+  {{#if logs.length}}
+    <ul class="stack" style="list-style:none; padding:0; margin:1rem 0; display:grid; gap:1rem;">
+      {{#each logs}}
+        <li class="row" style="display:flex; align-items:center; justify-content:space-between; gap:1rem; border:1px solid #eee; border-radius:10px; padding:1rem;">
+          <div class="col" style="flex:1;">
+            <div style="font-weight:600; font-size:1.05rem;">{{plant_name}}</div>
+            <div class="muted" style="color:#666; font-size:.9rem;">Logged: {{logged_at_str}}</div>
+            <div class="muted" style="color:#666; font-size:.85rem;">Plant ID: {{plant_id}}</div>
+          </div>
+
+          {{#if photo_url}}
+            <div class="col" style="flex:0 0 auto;">
+              <img src="{{photo_url}}" alt="{{plant_name}}" style="max-height:90px; width:auto; border-radius:8px; display:block;">
+            </div>
+          {{/if}}
+        </li>
+      {{/each}}
+    </ul>
+
+    <div>
+      <a href="/profile" class="btn">Log another plant</a>
+    </div>
+  {{else}}
+    <p>No plants logged yet.</p>
+    <a class="btn" href="/profile">Log your first plant</a>
+  {{/if}}
+</section>
