@@ -185,6 +185,39 @@ app.post('/register', async (req, res) => {
   }
 });
 
+app.get('/searchSpecies', (req, res) => {
+  res.render('pages/search', {
+    layout: 'main', title: 'Search Plants'
+  });
+});
+
+app.get('/searchSpecies', async (req, res) => {
+  try {
+    const name = req.query.name;
+
+    let query = `
+    SELECT plant_id, name, type, latitude, longitude, description, image_url
+    FROM plants
+    WHERE 1 = 1
+    `;
+    
+    //case-insenstive
+    if(name) {
+      query += "WHERE LOWER(name) = '" + name.toLowerCase() + "'";
+    }
+    
+    
+    query += 'ORDER BY plant_id DESC LIMIT 100';
+
+    const plants = await db.any(query);
+    res.json(plants);
+
+  }catch(err) {
+    console.error('Search error', err);
+    res.status(500).json({error: 'Error'});
+  }
+});
+
 app.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
 });
