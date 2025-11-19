@@ -85,9 +85,17 @@ app.get('/welcome', (req, res) => {
   res.json({status: 'success', message: 'Welcome!'});
 });
 
-app.get('/', (req, res) => {
+/*app.get('/', (req, res) => {
 
   res.sendFile(path.join(__dirname, 'views', 'pages', 'homepage.html'));
+});
+*/
+app.get('/', (req, res) => {
+  res.render('pages/home', {
+    layout: 'main',
+    title: 'Home | Verdant',
+    isHomePage: true
+  });
 });
 
 app.get('/login', (req, res) => {
