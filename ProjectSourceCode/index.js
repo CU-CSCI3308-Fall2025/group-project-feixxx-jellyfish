@@ -238,38 +238,33 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.get('/searchSpecies', (req, res) => {
-  res.render('pages/search', {
-    layout: 'main', title: 'Search Plants'
-  });
-});
+app.get('/plant/:id', async (req, res) => {
+  try{
 
-app.get('/searchSpecies', async (req, res) => {
-  try {
-    const name = req.query.name;
+    const plantID = req.params.id;
 
-    let query = `
-    SELECT plant_id, name, type, latitude, longitude, description, image_url
-    FROM plants
-    WHERE 1 = 1
-    `;
+    const plant = await db.one(`
+      SELECT * 
+      FROM plants
+      WHERE plant_id = $1`, [plantID]);
     
-    //case-insenstive
-    if(name) {
-      query += "WHERE LOWER(name) = '" + name.toLowerCase() + "'";
-    }
-    
-    
-    query += 'ORDER BY plant_id DESC LIMIT 100';
+    const logs = await db.any(`
+      SELECT u.*, p.first_name, p.last_name
+      FROM plant_logs u
+      JOIN users p ON p.id = u.user_id
+      WHERE u.plant_id = $1
+      ORDER BY u.logged_at DESC`, [plantID]);
 
-    const plants = await db.any(query);
-    res.json(plants);
-
+      res.render('/plantInfo', {
+        layout: 'main', plant, logs, title: plant.name
+      });
   }catch(err) {
-    console.error('Search error', err);
-    res.status(500).json({error: 'Error'});
+    console.error("Error retrieving info:", err);
+    res.status(404).send("Did not find plant");
   }
-});
+})
+
+
 
 app.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
