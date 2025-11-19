@@ -12,7 +12,7 @@ require('dotenv').config();
 
 // Serve static files
 app.use('/assets', express.static(path.join(__dirname,'views', 'pages', 'assets')));
-
+app.use(express.static(path.join(__dirname, 'public')));
 
 
 // *****************************************************
