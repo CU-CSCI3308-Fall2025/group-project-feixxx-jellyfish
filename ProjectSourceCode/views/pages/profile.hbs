@@ -1,11 +1,97 @@
-<section class="card">
-  <h2>Welcome, {{user.username}} 🌿</h2>
-  <p> From here you can log a plant and view your recent activity.</p>
+<section class="card p-3">
+  <h2>Welcome, {{user.first_name}}</h2>
+  <p>From here you can log a plant and view your recent activity.</p>
 
-  <div class="actions" style="margin:1rem 0;">
-    <a class="btn" href="/activity">View Recent Activity</a>
+  <div class="actions my-3">
+    <a class="btn btn-secondary" href="/activity">View Recent Activity</a>
   </div>
 
-  <hr />
+  <hr>
 
-  
+  {{!-- Flash messages --}}
+  {{#if emailChangeError}}
+    <div class="alert alert-danger mt-2">{{emailChangeError}}</div>
+  {{/if}}
+
+  {{#if emailChangeSuccess}}
+    <div class="alert alert-success mt-2">{{emailChangeSuccess}}</div>
+  {{/if}}
+
+  <h3 class="mt-3">Your Profile</h3>
+  <dl class="row mt-2">
+    <dt class="col-sm-3">First name</dt>
+    <dd class="col-sm-9">{{user.first_name}}</dd>
+
+    <dt class="col-sm-3">Last name</dt>
+    <dd class="col-sm-9">{{user.last_name}}</dd>
+
+    <dt class="col-sm-3">Email</dt>
+    <dd class="col-sm-9">
+      {{user.email}}
+    </dd>
+  </dl>
+
+  <hr>
+
+  {{!-- STEP 1: Ask for new email --}}
+  {{#unless emailChangePending}}
+    <h4>Change email</h4>
+    <p class="text-muted">
+      Enter a new email address. We’ll send a 6-digit code to your current email
+      ({{user.email}}) to verify it’s really you.
+    </p>
+
+    <form action="/profile/request-email-change" method="POST" class="mt-2">
+      <div class="mb-2">
+        <label for="new_email" class="form-label">New email address</label>
+        <input
+          type="email"
+          class="form-control"
+          id="new_email"
+          name="new_email"
+          required
+          value="{{emailChangeNewEmail}}"
+          placeholder="newemail"
+        >
+      </div>
+      <button type="submit" class="btn btn-secondary btn-sm">
+        Send verification code
+      </button>
+    </form>
+  {{/unless}}
+
+  {{!-- STEP 2: Verify code --}}
+  {{#if emailChangePending}}
+    <h4 class="mt-3">Verify email change</h4>
+    <p class="text-muted">
+      We sent a 6-digit code to <strong>{{emailChangeTarget}}</strong>.<br>
+      Enter it below to confirm changing your email to
+      <strong>{{emailChangeNewEmail}}</strong>.
+    </p>
+
+    <form action="/profile/confirm-email-change" method="POST" class="mt-2">
+      <div class="mb-2">
+        <label for="verification_code" class="form-label">Verification code</label>
+        <input
+          type="text"
+          class="form-control"
+          id="verification_code"
+          name="verification_code"
+          required
+          minlength="6"
+          maxlength="6"
+          placeholder="123456"
+        >
+      </div>
+      <button type="submit" class="btn btn-secondary btn-sm">
+        Confirm email change
+      </button>
+    </form>
+
+    <form action="/profile/cancel-email-change" method="POST" class="mt-2">
+      <button type="submit" class="btn btn-link btn-sm">
+        Cancel
+      </button>
+    </form>
+  {{/if}}
+</section>
