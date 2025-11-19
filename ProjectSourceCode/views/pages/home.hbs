@@ -1,0 +1,49 @@
+{{!-- views/pages/home.hbs --}}
+<main >
+  <section class="hero">
+    <img src="/assets/images/forest.jpg" alt="Verdant Nature" class="hero-img">
+    <div class="hero-content">
+      <h2>Welcome to Verdant</h2>
+      <p>Discover plants, seasons, and natural harmony.</p>
+
+      <form action="/search" method="GET" class="search-form">
+        <select name="category" id="category" class="search-dropdown">
+          <option value="Season">Bloom Season</option>
+          <option value="Summer">Summer</option>
+          <option value="Winter">Winter</option>
+          <option value="Autumn">Autumn</option>
+          <option value="Spring">Spring</option>
+          <option value="All">All Seasons</option>
+        </select>
+
+        <input
+          type="text"
+          name="query"
+          placeholder="Search..."
+          class="search-input"
+          required
+        />
+
+        <button type="submit" class="search-button">Search</button>
+      </form>
+
+      <div class="hero-buttons">
+        <a class="btn" href="/register">Get Started</a>
+        {{#if user}}
+        <a class="btn ghost" href="/Activity">Activity</a>
+        {{else}}
+        <a class="btn ghost" href="/login">Login</a>
+        {{/if}}
+      </div>
+    </div>
+  </section>
+
+  <section class="gallery">
+    <h3>Popular Plants</h3>
+    <div class="gallery-grid">
+      <img src="/assets/images/milkweed.jpeg" alt="Rose">
+      <img src="/assets/images/blueSpruce.jpg" alt="Sunflower">
+      <img src="/assets/images/chokecherry.jpg" alt="Lavender">
+    </div>
+  </section>
+</main>
