@@ -1,0 +1,18 @@
+<h1>Search Results</h1>
+
+<p>Showing results for: <strong>{{query}}</strong></p>
+
+{{#if results.length}}
+  <div class="gallery-grid">
+    {{#each results}}
+      <div class="plant-card">
+        <img src="{{img_url}}" alt="{{name}}">
+        <h3>{{name}}</h3>
+        <p>Bloom Season: {{bloom_season}}</p>
+      </div>
+    {{/each}}
+  </div>
+
+{{else}}
+  <p>No plants found matching your search.</p>
+{{/if}}
