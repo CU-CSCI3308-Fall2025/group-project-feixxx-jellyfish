@@ -24,6 +24,7 @@
         <a href="/">Home</a>
         <a href="./login">Login</a>
         <a href="./register">Register</a>
+        <a href="./map">Map</a>
       </nav>
     </div>
   </header>
@@ -36,25 +37,17 @@
         <p>Discover plants, seasons, and natural harmony.</p>
 
         <form action="/search" method="GET" class="search-form">
-          <select name="category" id="category" class="search-dropdown">
-            <option value="Season">Bloom Season</option>
-            <option value="Summer">Summer</option>
-            <option value="Winter">Winter</option>
-            <option value="Autumn">Autumn</option>
-            <option value="Spring">Spring</option>
-            <option value="All">All Seasons</option>
+          <input type="text" name="q" placeholder="Search..." class="search-input" required />
+          <select name="season" id="season" class="search-dropdown">
+            <option value="all">All Seasons</option>
+            <option value="spring">Spring</option>
+            <option value="summer">Summer</option>
+            <option value="fall">Fall</option>
+            <option value="winter">Winter</option>
           </select>
-
-          <input
-            type="text"
-            name="query"
-            placeholder="Search..."
-            class="search-input"
-            required
-          />
-
           <button type="submit" class="search-button">Search</button>
         </form>
+
 
         <div class="hero-buttons">
           <a class="btn" href="/register">Get Started</a>

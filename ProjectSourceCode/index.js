@@ -299,33 +299,96 @@ async function seedUsers() {
 
 // call once (after db connects)
 seedUsers().catch(err => console.error('Seed error:', err));
-
-
-
-
-
+ 
 
 app.get('/api/plants', async(req, res) => {
   try {
     if (!req.session.user){
-      return res.status(401).json({error: 'Not logged it'});
+      return res.status(401).json({error: 'Not logged in'});
     }
 
-    const currentUserID = req.session.user.id;
+    const currentUserId = req.session.user.id;
 
     const myPlants = await db.any(
-      'SELECT id, user_id, name, is_public, latitude, longitude, description, image_url, date_observed, type FROM plants WHERE user_id = $1',
+      `SELECT id, user_id, name, is_public, latitude, longitude, 
+              description, image_url, date_observed, type
+       FROM plants 
+       WHERE user_id = $1`,
       [currentUserId]
     );
 
-    res.json({
+    const publicPlants = await db.any(
+      `SELECT id, user_id, name, is_public, latitude, longitude, 
+              description, image_url, date_observed, type
+       FROM plants 
+       WHERE is_public = TRUE AND user_id != $1`,
+      [currentUserId]
+    );
+
+    return res.json({
       currentUserId,
       myPlants,
       publicPlants
     });
+
   } catch (err) {
     console.error('Error fetching plants', err);
     res.status(500).json({error: "Server error"});
+  }
+});
+
+//searchbar functionality
+
+app.get('/search', async (req, res) => {
+  try {
+    const { q, season } = req.query;
+
+    // Base SQL and params
+    let sql = `SELECT * FROM plants WHERE is_public = TRUE`;
+    const params = [];
+
+    // Text search
+    if (q && q.trim() !== '') {
+      params.push(`%${q.toLowerCase()}%`);
+      sql += ` AND LOWER(name) LIKE $${params.length}`;
+    }
+
+    // Season filter  
+    if (season && season !== 'all') {
+      let startMonth, endMonth;
+
+      switch (season) {
+        case 'spring': startMonth = 3; endMonth = 5; break;
+        case 'summer': startMonth = 6; endMonth = 8; break;
+        case 'fall':   startMonth = 9; endMonth = 11; break;
+        case 'winter': startMonth = 12; endMonth = 2; break;
+      }
+
+      if (startMonth < endMonth) {
+        // Normal range
+        params.push(startMonth, endMonth);
+        sql += ` AND EXTRACT(MONTH FROM date_observed) BETWEEN $${params.length - 1} AND $${params.length}`;
+      } else {
+        // Winter (wraps year-end)
+        params.push(startMonth, endMonth);
+        sql += ` AND (EXTRACT(MONTH FROM date_observed) >= $${params.length - 1}
+                    OR EXTRACT(MONTH FROM date_observed) <= $${params.length})`;
+      }
+    }
+
+    const results = await db.any(sql, params);
+
+    res.render('pages/search_results', {
+      title: "Search Results",
+      layout: "main",
+      plants: results,
+      q,
+      season
+    });
+
+  } catch (err) {
+    console.error("Search error:", err);
+    res.status(500).send("Internal Server Error");
   }
 });
 

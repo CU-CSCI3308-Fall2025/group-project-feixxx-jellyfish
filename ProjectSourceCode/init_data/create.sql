@@ -1,24 +1,8 @@
+-- Users
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(100) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS plants(
-    plant_id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    sci_name VARCHAR(100),
-    plant_type VARCHAR(50),
-    season VARCHAR (50),
-    plant_description TEXT,
-    Latitude DOUBLE PRECISION,
-    Longitude DOUBLE PRECISION,
-    img_url TEXT
-);
-
-CREATE TABLE IF NOT EXISTS users_plants(
-    username foreign key references users(username),
-    plant_id foreign key references plants(id)
 );
 
 INSERT INTO users (username, password) VALUES
@@ -26,6 +10,7 @@ INSERT INTO users (username, password) VALUES
 ('bob', 'bobpassword'),
 ('charlie', 'charliepassword');
 
+-- Plants
 CREATE TABLE IF NOT EXISTS plants (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
@@ -43,17 +28,21 @@ CREATE TABLE IF NOT EXISTS plants (
 
 INSERT INTO plants (user_id, name, is_public, latitude, longitude, description, image_url, date_observed, type)
 VALUES
--- Bluebell by alice, public
-(1, TRUE, 40.770, -105.420, 'Bluebell', 'Found near the riverbank.', 
+(1, 'Bluebell', TRUE, 40.770, -105.420, 'Found near the riverbank.',
  'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Hyacinthoides_non-scripta_%28Common_Bluebell%29.jpg/500px-Hyacinthoides_non-scripta_%28Common_Bluebell%29.jpg',
  CURRENT_DATE, 'flower'),
-
--- Wild Rose by alice, private
-(1, FALSE, 40.775, -105.410, 'Wild Rose', 'Backyard discovery!', 
+(1, 'Wild Rose', FALSE, 40.775, -105.410, 'Backyard discovery!',
  'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Rosa_acicularis_8448.JPG/500px-Rosa_acicularis_8448.JPG',
  CURRENT_DATE, 'flower'),
-
--- Clover by bob, public
-(2, TRUE, 40.772, -105.425, 'Clover', 'Found during a hike.', 
+(2, 'Clover', TRUE, 40.772, -105.425, 'Found during a hike.',
  'https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Clovers_%26_Zrebar.jpg/500px-Clovers_%26_Zrebar.jpg',
  CURRENT_DATE, 'flower');
+
+-- Users_Plants junction table
+CREATE TABLE IF NOT EXISTS users_plants (
+    user_id INT NOT NULL,
+    plant_id INT NOT NULL,
+    PRIMARY KEY (user_id, plant_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (plant_id) REFERENCES plants(id)
+);
