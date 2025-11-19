@@ -489,9 +489,7 @@ app.post('/profile/confirm-email-change', requireAuth, async (req, res) => {
     return res.redirect('/profile');
   }
 });
-
-
-
+   
 
 
 function requireAuth(req, res, next) {
