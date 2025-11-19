@@ -13,7 +13,7 @@
       margin: 0;
     }
     header {
-      background: #9ecfa7;
+      background: #22692f;
       color: #fff;
       padding: 1rem;
     }
@@ -42,25 +42,53 @@
       font-size: 0.9rem;
     }
   </style>
+  <style>
+    body.map-page main {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      background: none;
+      border-radius: 0;
+      box-shadow: none;
+      width: 95vw;
+      height: calc(100vh - 140px); /* adjust if header/footer change */
+    }
+
+    body.map-page #map {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
 </head>
 
-<body>
+<body class="{{#if isMapPage}}map-page{{/if}}">
   <header>
-    <h1>Plant Logger</h1>
+    <div class ="site-header">
+    <h1>Verdant</h1>
     <nav>
       <a href="/">Home</a>
-      <a href="/login">Login</a>
-      <a href="/register">Register</a>
-      <a href="/logout">Logout</a>
+
+      {{#if user}}
+        <a hredf="/">Home</a>"
+        <a href="/profile">Profile</a>
+        <a href="/activity">Activity</a>
+        <a href="/logout">Logout ({{user.username}})</a>
+      {{else}}
+        <a href="/">Home</a>
+        <a href="/login">Login</a>
+        <a href="/register">Register</a>
+      {{/if}}
     </nav>
+
+    </div>
   </header>
 
   <main>
     {{{body}}}   {{!-- This is where page-specific content appears --}}
   </main>
 
-  <footer>
-    <p>🌱 Plant Logger &copy; 2025</p>
+  <footer class ="site-footer" class ="bottom-footer">
+    <p>🌱 Verdant &copy; 2025</p>
   </footer>
 </body>
 </html>

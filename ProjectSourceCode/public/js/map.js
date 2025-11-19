@@ -103,37 +103,56 @@ const layersControl = L.control.layers({}, {
 }).addTo(map);
 
 
-//debug - remove later
-console.log("Plant logs:", plantLogs);
-console.log("Current user ID:", currentUserId);
+async function loadPlants() {
+  try {
+    const response = await fetch('/api/plants');
+    if (!response.ok) throw new Error('Failed to fetch plants');
 
-// Loop through data and add specific icons
-plantLogs.forEach(plant => {
-  const popupHtml = `
-    <div style="text-align:center;">
-      <img src="${plant.imgUrl}" alt="${plant.name}" width="120" style="border-radius:8px;"><br>
-      <b>${plant.name}</b><br>
-      <em>${plant.description}</em><br>
-      <a href="/plant/${plant.id}" target="_blank">View full log</a>
-    </div>
-  `;
+    const data = await response.json();
+    const { currentUserId, myPlants, publicPlants } = data;
 
-  let icon, targetLayer;
+    // Clear layers
+    myPlantsLayer.clearLayers();
+    publicPlantsLayer.clearLayers();
 
-  if (plant.userId === currentUserId) {
-    if (plant.isPublic) {
-      icon = myPublicIcon;
-      targetLayer = myPlantsLayer;
-    } else {
-      icon = myPrivateIcon;
-      targetLayer = myPlantsLayer;
-    }
-  } else {
-    icon = othersIcon;
-    targetLayer = publicPlantsLayer;
+    // Add current user's plants
+    myPlants.forEach(plant => {
+      const icon = plant.is_public ? myPublicIcon : myPrivateIcon;
+
+      const popupHtml = `
+        <div style="text-align:center;">
+          ${plant.image_url ? `<img src="${plant.image_url}" width="120" style="border-radius:8px;"><br>` : ''}
+          <b>${plant.type}</b><br>
+          <em>${plant.description}</em><br>
+          <a href="/plant/${plant.id}" target="_blank">View full log</a>
+        </div>
+      `;
+
+      L.marker([plant.latitude, plant.longitude], { icon })
+        .addTo(myPlantsLayer)
+        .bindPopup(popupHtml);
+    });
+
+    // Add other users' public plants
+    publicPlants.forEach(plant => {
+      const popupHtml = `
+        <div style="text-align:center;">
+          ${plant.image_url ? `<img src="${plant.image_url}" width="120" style="border-radius:8px;"><br>` : ''}
+          <b>${plant.type}</b><br>
+          <em>${plant.description}</em><br>
+          <a href="/plant/${plant.id}" target="_blank">View full log</a>
+        </div>
+      `;
+
+      L.marker([plant.latitude, plant.longitude], { icon: othersIcon })
+        .addTo(publicPlantsLayer)
+        .bindPopup(popupHtml);
+    });
+
+  } catch (err) {
+    console.error('Error loading plants:', err);
   }
+}
 
-  L.marker([plant.lat, plant.lng], { icon })
-    .addTo(targetLayer)
-    .bindPopup(popupHtml);
-});
+// Call the function to populate map
+loadPlants();
