@@ -19,7 +19,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Section 2 : Connect to DB
 // *****************************************************
 const dbConfig = {
-  host: process.env.PGHOST || 'localhost',
+  host: process.env.PGHOST || 'dpg-d4fkfare5dus73clb2f0-a',
   port: process.env.PGPORT || 5432,
   database: process.env.POSTGRES_DB,
   user: process.env.POSTGRES_USER,
@@ -36,6 +36,8 @@ db.connect()
   .catch(error => {
     console.log('❌ Database connection error:', error.message || error);
   });
+
+
 
 // *****************************************************
 // Section 3 : App Settings
@@ -287,6 +289,7 @@ async function seedUsers() {
 
   for (const u of users) {
     // await is allowed inside an async function
+    console.log(`Seeding user: ${u.username}`);
     const hash = await bcrypt.hash(u.password, 10);
     await db.none(
       'INSERT INTO users (username, password) VALUES ($1, $2) ON CONFLICT (username) DO NOTHING',
@@ -378,7 +381,7 @@ app.get('/search', async (req, res) => {
 
     const results = await db.any(sql, params);
 
-    res.render('pages/search_results', {
+    res.render('pages/searchResults', {
       title: "Search Results",
       layout: "main",
       plants: results,
