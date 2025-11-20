@@ -1,60 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Home | MySite</title>
-    <link rel="stylesheet" href="assets/css/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home | Verdant</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body>
-    <header class="site-header">
-        <div class="container">
-            <h1 class="logo">MySite</h1>
-            <nav>
-                <a href="index.html">Home</a>
-                <a href="./login.hbs">Login</a>
-                <a href="views/register.html">Register</a>
-            </nav>
-        </div>
-    </header>
+  <header class="site-header">
+    <div class="container">
+      <h1 class="logo">
+        <img src="assets/images/logo.png" alt="Verdant Logo">
+      </h1>
+      <nav>
+        <a href="/">Home</a>
+        <a href="./login">Login</a>
+        <a href="./register">Register</a>
+        <a href="./map">Map</a>
+      </nav>
+    </div>
+  </header>
 
-
-<main class="container">
+  <main class="container">
     <section class="hero">
+      <img src="assets/images/forest.jpg" alt="Verdant Nature" class="hero-img">
+      <div class="hero-content">
         <h2>Welcome to Verdant</h2>
-        <div class="search-container">
-            <form action="/search" method="GET" class="search-form">
-                <select name="category" id="category" class="search-dropdown">
-                <option value="Season">Bloom Season</option>
-                <option value="Summer">Summer</option>
-                <option value="Winter">Winter</option>
-                <option value="Autumn">Autumn</option>
-                <option value="Spring">Spring</option>
-                <option value="All">All Seasons</option>
-                </select>
+        <p>Discover plants, seasons, and natural harmony.</p>
 
-                <input
-                type="text"
-                name="query"
-                placeholder="Search..."
-                class="search-input"
-                required
-                />
+        <form action="/search" method="GET" class="search-form">
+          <input type="text" name="q" placeholder="Search..." class="search-input" required />
+          <select name="season" id="season" class="search-dropdown">
+            <option value="all">All Seasons</option>
+            <option value="spring">Spring</option>
+            <option value="summer">Summer</option>
+            <option value="fall">Fall</option>
+            <option value="winter">Winter</option>
+          </select>
+          <button type="submit" class="search-button">Search</button>
+        </form>
 
-                <button type="submit" class="search-button">Search</button>
-            </form>
+
+        <div class="hero-buttons">
+          <a class="btn" href="/register">Get Started</a>
+          <a class="btn ghost" href="/login">Sign In</a>
         </div>
-        <p>Demo homepage with links to login and register views.</p>
-        <p>
-            <a class="btn" href="views/register.html">Get started</a>
-            <a class="btn ghost" href="views/login.html">Sign in</a>
-        </p>
+      </div>
     </section>
-</main>
 
+    <section class="gallery">
+      <h3>Popular Plants</h3>
+      <div class="gallery-grid">
+        <img src="assets/images/milkweed.jpeg" alt="Rose">
+        <img src="assets/images/blueSpruce.jpg" alt="Sunflower">
+        <img src="assets/images/chokecherry.jpg" alt="Lavender">
+      </div>
+    </section>
+  </main>
 
-<footer class="site-footer">
-<div class="container">© Verdant — Demo</div>
-</footer>
+  <footer class="site-footer">
+    <div class="container">
+      <p>© 2025 Verdant — <a href="#">Privacy</a> | <a href="#">Contact</a></p>
+    </div>
+  </footer>
 </body>
 </html>
