@@ -21,7 +21,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Section 2 : Connect to DB
 // *****************************************************
 const dbConfig = {
-  host: process.env.PGHOST || 'localhost',
+  host: process.env.PGHOST || 'dpg-d4fkfare5dus73clb2f0-a',
   port: process.env.PGPORT || 5432,
   database: process.env.POSTGRES_DB,
   user: process.env.POSTGRES_USER,
