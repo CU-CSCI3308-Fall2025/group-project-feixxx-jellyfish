@@ -6,6 +6,8 @@ const pgp = require('pg-promise')();
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');// for email verification 
+
 require('dotenv').config();
 
 
@@ -27,6 +29,16 @@ const dbConfig = {
 };
 
 const db = pgp(dbConfig);
+const mailer = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT) || 587,
+  secure: false, // set true if you're using port 465
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
+});
+
 
 db.connect()
   .then(obj => {
@@ -62,6 +74,9 @@ app.use((req, res, next) => {
   next();
 });
 
+// Server-side password rule (same as front-end)
+const passwordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%]).{10,}$/;
 
 
 // *****************************************************
@@ -72,9 +87,17 @@ app.get('/welcome', (req, res) => {
   res.json({status: 'success', message: 'Welcome!'});
 });
 
-app.get('/', (req, res) => {
+/*app.get('/', (req, res) => {
 
   res.sendFile(path.join(__dirname, 'views', 'pages', 'homepage.html'));
+});
+*/
+app.get('/', (req, res) => {
+  res.render('pages/home', {
+    layout: 'main',
+    title: 'Home | Verdant',
+    isHomePage: true
+  });
 });
 
 app.get('/login', (req, res) => {
@@ -83,20 +106,21 @@ app.get('/login', (req, res) => {
 
 app.post('/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
 
-    if (!username || !password) {
+    if (!email || !password) {
       return res.status(400).render('pages/login', {
         layout: 'main',
         title: 'Plant Logger — Login',
-        error: 'Please enter both username and password.'
+        error: 'Please enter both email and password.',
+        enteredEmail: email|| ''
       });
     }
 
-    // 1) Look up user by username
+    // 1) Look up user by email
     const user = await db.oneOrNone(
-      'SELECT id, username, password FROM users WHERE username = $1',
-      [username]
+      'SELECT id, first_name, last_name, email, password FROM users WHERE email = $1',
+      [email]
     );
 
     // 2) If user not found ⇒ suggest registration
@@ -105,7 +129,7 @@ app.post('/login', async (req, res) => {
         layout: 'main',
         title: 'Plant Logger — Login',
         noUser: true,
-        enteredUsername: username
+        enteredEmail: email
       });
     }
 
@@ -116,12 +140,18 @@ app.post('/login', async (req, res) => {
         layout: 'main',
         title: 'Plant Logger — Login',
         error: 'Invalid password.',
-        enteredUsername: username
+        enteredEmail: email
       });
     }
 
     // 4) Successful login ⇒ set session + redirect
-    req.session.user = { id: user.id, username: user.username };
+    req.session.user = { 
+      id: user.id,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name
+    
+    };
     req.session.save(() => res.redirect('/'));
 
   } catch (err) {
@@ -140,41 +170,64 @@ app.get('/register', (req, res) => {
 
 app.post('/register', async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { first_name, last_name, email, password } = req.body;
 
     // basic validation
-    if (!username || !password) {
+    if (!first_name || !last_name || !email || !password) {
       return res.status(400).render('pages/register', {
         layout: 'main',
         title: 'Register',
-        error: 'Username and password are required.',
-        enteredUsername: username || ''
+        error: 'First name, last name, email, and password are required.',
+        enteredFirstName: first_name || '',
+        enteredLastName: last_name || '',
+        enteredEmail: email || ''
+      });
+    
+
+    }
+
+    if (!passwordRegex.test(password)) {
+      return res.status(400).render('pages/register', {
+        layout: 'main',
+        title: 'Register',
+        error:
+          'Password must be at least 10 characters and include 1 uppercase, 1 lowercase, 1 number, and 1 special character (!,@,#,$,%).',
+        enteredFirstName: first_name,
+        enteredLastName: last_name,
+        enteredEmail: email
       });
     }
 
     // hash password
     const hash = await bcrypt.hash(password, 10);
 
-    // insert and get new user id
+     // insert and get new user id
     const row = await db.one(
-      `INSERT INTO users (username, password)
-       VALUES ($1, $2)
-       RETURNING id, username`,
-      [username, hash]
+      `INSERT INTO users (first_name, last_name, email, password)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, first_name, last_name, email`,
+      [first_name, last_name, email, hash]
     );
 
     // create session and go to profile
-    req.session.user = { id: row.id, username: row.username };
+    req.session.user = {
+      id: row.id,
+      email: row.email,
+      first_name: row.first_name,
+      last_name: row.last_name
+    };
     return req.session.save(() => res.redirect('/profile'));
 
-  } catch (err) {
-    // handle duplicate username nicely (Postgres unique_violation)
+   } catch (err) {
+    // handle duplicate email nicely (Postgres unique_violation)
     if (err && err.code === '23505') {
       return res.status(409).render('pages/register', {
         layout: 'main',
         title: 'Register',
-        error: 'That username is already taken.',
-        enteredUsername: req.body.username
+        error: 'That email is already registered.',
+        enteredFirstName: req.body.first_name,
+        enteredLastName: req.body.last_name,
+        enteredEmail: req.body.email
       });
     }
 
@@ -253,26 +306,179 @@ app.get('/activity', requireAuth, async (req, res) => {
 });
 
 // GET /profile — just render, protected
-app.get('/profile', requireAuth, (req, res) => {
-  return res.status(200).render('pages/profile', {
-    layout: 'main',
-    title: 'Your Profile'
-  });
-});
-
 
 app.get('/profile', requireAuth, (req, res) => {
-  res.render('pages/profile', {
+  const emailChange = req.session.emailChange || null;
+
+  const viewData = {
     layout: 'main',
     title: 'Your Profile',
-  });
+    // flags for template
+    emailChangePending: !!emailChange,
+    emailChangeTarget: emailChange ? emailChange.oldEmail : null,
+    emailChangeNewEmail: emailChange ? emailChange.newEmail : null,
+    emailChangeError: req.session.emailChangeError || null,
+    emailChangeSuccess: req.session.emailChangeSuccess || null
+  };
+
+  // clear one-time messages
+  req.session.emailChangeError = null;
+  req.session.emailChangeSuccess = null;
+
+  return res.status(200).render('pages/profile', viewData);
 });
+
+app.post('/profile/request-email-change', requireAuth, async (req, res) => {
+  try {
+    const { new_email } = req.body;
+    const currentUser = req.session.user;
+
+    if (!new_email) {
+      req.session.emailChangeError = 'Please enter a new email address.';
+      return res.redirect('/profile');
+    }
+
+    if (new_email === currentUser.email) {
+      req.session.emailChangeError = 'New email cannot be the same as your current email.';
+      return res.redirect('/profile');
+    }
+
+    // Make sure no one else is already using this email
+    const existing = await db.oneOrNone(
+      'SELECT id FROM users WHERE email = $1',
+      [new_email]
+    );
+    if (existing) {
+      req.session.emailChangeError = 'That email is already in use.';
+      return res.redirect('/profile');
+    }
+
+    // Generate 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Store in session for now (10 min expiry)
+    req.session.emailChange = {
+      code,
+      newEmail: new_email,
+      oldEmail: currentUser.email,
+      expiresAt: Date.now() + 10 * 60 * 1000
+    };
+
+    // Send verification code to *current* email
+    await mailer.sendMail({
+      from: process.env.FROM_EMAIL || process.env.SMTP_USER,
+      to: currentUser.email,
+      subject: 'Plant Logger: Email change verification code',
+      text:
+        `You requested to change your Plant Logger email.\n\n` +
+        `Verification code: ${code}\n` +
+        `This code expires in 10 minutes.\n\n` +
+        `If you did not request this, you can ignore this email.`
+    });
+
+    req.session.emailChangeError = null;
+    req.session.emailChangeSuccess = 'We sent a verification code to your current email.';
+    return res.redirect('/profile');
+
+  } catch (err) {
+    console.error('Error requesting email change:', err);
+    req.session.emailChangeError = 'Could not send verification email. Please try again.';
+    return res.redirect('/profile');
+  }
+});
+
+app.post('/profile/confirm-email-change', requireAuth, async (req, res) => {
+  try {
+    const { verification_code } = req.body;
+    const currentUser = req.session.user;
+    const info = req.session.emailChange;
+
+    if (!info) {
+      req.session.emailChangeError = 'No email change is pending.';
+      return res.redirect('/profile');
+    }
+
+    if (!verification_code) {
+      req.session.emailChangeError = 'Please enter the verification code.';
+      return res.redirect('/profile');
+    }
+
+    if (Date.now() > info.expiresAt) {
+      req.session.emailChange = null;
+      req.session.emailChangeError = 'Verification code has expired. Please request a new one.';
+      return res.redirect('/profile');
+    }
+
+    if (verification_code.trim() !== info.code) {
+      req.session.emailChangeError = 'Invalid verification code.';
+      return res.redirect('/profile');
+    }
+
+    const oldEmail = info.oldEmail;
+    const newEmail = info.newEmail;
+
+    // Double-check the new email isn't taken (race condition)
+    const existing = await db.oneOrNone(
+      'SELECT id FROM users WHERE email = $1 AND id <> $2',
+      [newEmail, currentUser.id]
+    );
+    if (existing) {
+      req.session.emailChangeError = 'That email is already in use.';
+      return res.redirect('/profile');
+    }
+
+    // Update DB
+    await db.none(
+      'UPDATE users SET email = $1 WHERE id = $2',
+      [newEmail, currentUser.id]
+    );
+
+    // Update session
+    req.session.user.email = newEmail;
+
+    // Clear pending info
+    req.session.emailChange = null;
+
+    // Notify old email that change happened
+    try {
+      await mailer.sendMail({
+        from: process.env.FROM_EMAIL || process.env.SMTP_USER,
+        to: oldEmail,
+        subject: 'Plant Logger: Email address changed',
+        text:
+          `Your Plant Logger account email has been changed from ${oldEmail} to ${newEmail}.\n\n` +
+          `If you did not make this change, please contact support immediately.`
+      });
+    } catch (notifyErr) {
+      console.error('Failed to send email change notification:', notifyErr);
+      // but we don’t block the change for that
+    }
+
+    req.session.emailChangeSuccess = 'Your email address has been updated.';
+    return res.redirect('/profile');
+
+  } catch (err) {
+    console.error('Error confirming email change:', err);
+    req.session.emailChangeError = 'Could not confirm email change. Please try again.';
+    return res.redirect('/profile');
+  }
+});
+
+
+
 
 
 function requireAuth(req, res, next) {
   if (!req.session.user) return res.redirect('/login');
   next();
 }
+app.post('/profile/cancel-email-change', requireAuth, (req, res) => {
+  req.session.emailChange = null;
+  req.session.emailChangeError = null;
+  req.session.emailChangeSuccess = 'Email change request cancelled.';
+  return res.redirect('/profile');
+});
+
 
 
 
@@ -282,20 +488,39 @@ function requireAuth(req, res, next) {
 // *****************************************************
 async function seedUsers() {
   const users = [
-    { username: 'alice', password: 'alicepassword' },
-    { username: 'bob', password: 'bobpassword' },
-    { username: 'charlie', password: 'charliepassword' }
+    {
+      first_name: 'Alice',
+      last_name: 'Example',
+      email: 'alice@example.com',
+      password: 'alicepassword'
+    },
+    {
+      first_name: 'Bob',
+      last_name: 'Example',
+      email: 'bob@example.com',
+      password: 'bobpassword'
+    },
+    {
+      first_name: 'Charlie',
+      last_name: 'Example',
+      email: 'charlie@example.com',
+      password: 'charliepassword'
+    }
   ];
+
 
   for (const u of users) {
     // await is allowed inside an async function
     console.log(`Seeding user: ${u.username}`);
     const hash = await bcrypt.hash(u.password, 10);
     await db.none(
-      'INSERT INTO users (username, password) VALUES ($1, $2) ON CONFLICT (username) DO NOTHING',
-      [u.username, hash]
+      `INSERT INTO users (first_name, last_name, email, password)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (email) DO NOTHING`,
+      [u.first_name, u.last_name, u.email, hash]
     );
   }
+ 
 
   console.log('Sample users seeded');
 }
