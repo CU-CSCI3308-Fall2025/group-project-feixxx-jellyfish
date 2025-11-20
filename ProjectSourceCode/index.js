@@ -238,6 +238,34 @@ app.post('/register', async (req, res) => {
   }
 });
 
+app.get('/plant/:id', async (req, res) => {
+  try{
+
+    const plantID = req.params.id;
+
+    const plant = await db.one(`
+      SELECT * 
+      FROM plants
+      WHERE plant_id = $1`, [plantID]);
+    
+    const logs = await db.any(`
+      SELECT u.*, p.first_name, p.last_name
+      FROM plant_logs u
+      JOIN users p ON p.id = u.user_id
+      WHERE u.plant_id = $1
+      ORDER BY u.logged_at DESC`, [plantID]);
+
+      res.render('/plantInfo', {
+        layout: 'main', plant, logs, title: plant.name
+      });
+  }catch(err) {
+    console.error("Error retrieving info:", err);
+    res.status(404).send("Did not find plant");
+  }
+})
+
+
+
 app.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
 });
@@ -461,9 +489,7 @@ app.post('/profile/confirm-email-change', requireAuth, async (req, res) => {
     return res.redirect('/profile');
   }
 });
-
-
-
+   
 
 
 function requireAuth(req, res, next) {
@@ -566,7 +592,7 @@ app.get('/api/plants', async(req, res) => {
 app.get('/search', async (req, res) => {
   try {
     const { q, season } = req.query;
-
+    
     // Base SQL and params
     let sql = `SELECT * FROM plants WHERE is_public = TRUE`;
     const params = [];
@@ -602,24 +628,36 @@ app.get('/search', async (req, res) => {
 
     const results = await db.any(sql, params);
 
-    res.render('pages/search_results', {
+    res.render('pages/searchResults', {
       title: "Search Results",
       layout: "main",
-      plants: results,
-      q,
+      results: results,
+      query: q,
       season
     });
 
   } catch (err) {
-    console.error("Search error:", err);
-    res.status(500).send("Internal Server Error");
-  }
+    console.error("Search error:", err.message, err);
+    //res.status(500).send("Internal Server Error");
+    res.status(500).render('pages/searchResults', {
+      title: "Search Results",
+      layout: "main",
+      results: [],
+      query: req.query.q || "",
+      season: req.query.season || "all",
+      error: "Something went wrong. Please try again."
+  });
+}
 });
+
+
 
 // *****************************************************
 // Section 5 : Start Server
 // *****************************************************
 const PORT = process.env.PORT || 3000;
 //app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-module.exports = app.listen(PORT);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+});
+module.exports = server;
