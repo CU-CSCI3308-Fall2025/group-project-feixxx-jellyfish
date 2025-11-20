@@ -592,7 +592,7 @@ app.get('/api/plants', async(req, res) => {
 app.get('/search', async (req, res) => {
   try {
     const { q, season } = req.query;
-
+    
     // Base SQL and params
     let sql = `SELECT * FROM plants WHERE is_public = TRUE`;
     const params = [];
@@ -628,24 +628,36 @@ app.get('/search', async (req, res) => {
 
     const results = await db.any(sql, params);
 
-    res.render('pages/search_results', {
+    res.render('pages/searchResults', {
       title: "Search Results",
       layout: "main",
-      plants: results,
-      q,
+      results: results,
+      query: q,
       season
     });
 
   } catch (err) {
-    console.error("Search error:", err);
-    res.status(500).send("Internal Server Error");
-  }
+    console.error("Search error:", err.message, err);
+    //res.status(500).send("Internal Server Error");
+    res.status(500).render('pages/searchResults', {
+      title: "Search Results",
+      layout: "main",
+      results: [],
+      query: req.query.q || "",
+      season: req.query.season || "all",
+      error: "Something went wrong. Please try again."
+  });
+}
 });
+
+
 
 // *****************************************************
 // Section 5 : Start Server
 // *****************************************************
 const PORT = process.env.PORT || 3000;
 //app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-module.exports = app.listen(PORT);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+});
+module.exports = server;
