@@ -247,7 +247,25 @@ app.get('/map', (req, res) => {
 });
 
 // POST /log-plant
-app.post('/log-plant', requireAuth, async (req, res) => {
+app.get('/logPlants', requireAuth, async (req, res) => {
+  try {
+    // Optional: fetch existing plants for a dropdown
+    const plants = await db.any(`SELECT plant_id, name FROM plants ORDER BY name`);
+
+    res.render('pages/logPlants', {
+      layout: 'main',
+      title: 'Log a New Plant',
+      plants
+    });
+  } catch (err) {
+    console.error('Cannot load plant logging page', err);
+    res.status(500).send('Server error');
+  }
+});
+
+
+
+app.post('/logPlant', requireAuth, async (req, res) => {
   const { plant_id, photo_url } = req.body;
   if (!plant_id) return res.status(400).send('plant_id is required');
 
