@@ -21,7 +21,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Section 2 : Connect to DB
 // *****************************************************
 const dbConfig = {
-  host: process.env.PGHOST || 'localhost',
+  host: process.env.PGHOST || 'dpg-d4fkfare5dus73clb2f0-a',
   port: process.env.PGPORT || 5432,
   database: process.env.POSTGRES_DB,
   user: process.env.POSTGRES_USER,
@@ -250,7 +250,25 @@ app.get('/map', (req, res) => {
 });
 
 // POST /log-plant
-app.post('/log-plant', requireAuth, async (req, res) => {
+app.get('/logPlants', requireAuth, async (req, res) => {
+  try {
+    // Optional: fetch existing plants for a dropdown
+    const plants = await db.any(`SELECT plant_id, name FROM plants ORDER BY name`);
+
+    res.render('pages/logPlants', {
+      layout: 'main',
+      title: 'Log a New Plant',
+      plants
+    });
+  } catch (err) {
+    console.error('Cannot load plant logging page', err);
+    res.status(500).send('Server error');
+  }
+});
+
+
+
+app.post('/logPlant', requireAuth, async (req, res) => {
   const { plant_id, photo_url } = req.body;
   if (!plant_id) return res.status(400).send('plant_id is required');
 
@@ -632,7 +650,5 @@ app.get('/search', async (req, res) => {
 // *****************************************************
 const PORT = process.env.PORT || 3000;
 //app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-});
-module.exports = server;
+
+module.exports = app.listen(PORT);

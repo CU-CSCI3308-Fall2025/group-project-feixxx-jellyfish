@@ -1,0 +1,21 @@
+<h1>Log a New Plant</h1>
+<p>Please enter plant name and information</p>
+
+<form action="/log-plant" method = "POST">
+    <div>
+        <label for="plant_id">Plant Name:</label>
+        <input type="text" id="plant_id" name="plant_id" required>
+    </div>
+    <div>
+        <label for="sci_name">Scientific Name:</label>
+        <input type="text" id="sci_name" name="sci_name">
+    </div>
+    <div>
+        <label for="photo_url"> Photo URL: </label>
+        <input type="url" id="photo_url" name="photo_url">
+
+    </div>
+    <button type="submit">Log Plant</button>
+
+</form>
+
