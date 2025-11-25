@@ -238,31 +238,6 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.get('/plant/:id', async (req, res) => {
-  try{
-
-    const plantID = req.params.id;
-
-    const plant = await db.one(`
-      SELECT * 
-      FROM plants
-      WHERE plant_id = $1`, [plantID]);
-    
-    const logs = await db.any(`
-      SELECT u.*, p.first_name, p.last_name
-      FROM plant_logs u
-      JOIN users p ON p.id = u.user_id
-      WHERE u.plant_id = $1
-      ORDER BY u.logged_at DESC`, [plantID]);
-
-      res.render('/plantInfo', {
-        layout: 'main', plant, logs, title: plant.name
-      });
-  }catch(err) {
-    console.error("Error retrieving info:", err);
-    res.status(404).send("Did not find plant");
-  }
-})
 
 
 
