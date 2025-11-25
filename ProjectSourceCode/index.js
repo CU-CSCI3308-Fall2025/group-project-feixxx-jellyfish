@@ -238,6 +238,9 @@ app.post('/register', async (req, res) => {
   }
 });
 
+
+
+
 app.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
 });
@@ -266,23 +269,56 @@ app.get('/logPlants', requireAuth, async (req, res) => {
 
 
 app.post('/logPlants', requireAuth, async (req, res) => {
-  const { plant_id, photo_url } = req.body;
-  if (!plant_id) return res.status(400).send('plant_id is required');
+  try {
+    const { name, sci_name, photo_url } = req.body;
 
-  await db.none(
-    `INSERT INTO plant_logs (user_id, plant_id, photo_url)
-     VALUES ($1, $2, $3)`,
-    [req.session.user.id, plant_id, photo_url || null]
-  );
+    if (!name || name.trim() === '') {
+      return res.status(400).render('pages/logPlants', {
+        layout: 'main',
+        error: 'Plant name is required',
+        enteredName: name,
+        enteredSciName: sci_name,
+        enteredPhotoUrl: photo_url
+      });
+    }
 
-  // optional: also save as favorite
-  await db.none(
-    `INSERT INTO users_plants (user_id, plant_id)
-     VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-    [req.session.user.id, plant_id]
-  );
+   //Check if plant already exists
+    let plant = await db.oneOrNone(
+      'SELECT plant_id FROM plants WHERE name = $1',
+      [name.trim()]
+    );
 
-  res.redirect('/activity');
+  
+    if (!plant) {
+      plant = await db.one(
+        `INSERT INTO plants (name, sci_name, img_url)
+         VALUES ($1, $2, $3)
+         RETURNING plant_id`,
+        [name.trim(), sci_name || null, photo_url || null]
+      );
+    }
+    await db.none(
+      `INSERT INTO plant_logs (user_id, plant_id, photo_url)
+       VALUES ($1, $2, $3)`,
+      [req.session.user.id, plant.plant_id, photo_url || null]
+    );
+
+  
+    await db.none(
+      `INSERT INTO users_plants (user_id, plant_id)
+       VALUES ($1, $2)
+       ON CONFLICT DO NOTHING`,
+      [req.session.user.id, plant.plant_id]
+    );
+
+    res.redirect('/activity');
+  } catch (err) {
+    console.error('Error logging plant:', err);
+    res.status(500).render('pages/logPlants', {
+      layout: 'main',
+      error: 'Something went wrong. Please try again.'
+    });
+  }
 });
 
 // GET /activity  — show last 5 logs (newest first). Empty list is OK.
@@ -479,9 +515,7 @@ app.post('/profile/confirm-email-change', requireAuth, async (req, res) => {
     return res.redirect('/profile');
   }
 });
-
-
-
+   
 
 
 function requireAuth(req, res, next) {
@@ -584,7 +618,7 @@ app.get('/api/plants', async(req, res) => {
 app.get('/search', async (req, res) => {
   try {
     const { q, season } = req.query;
-
+    
     // Base SQL and params
     let sql = `SELECT * FROM plants WHERE is_public = TRUE`;
     const params = [];
@@ -620,19 +654,29 @@ app.get('/search', async (req, res) => {
 
     const results = await db.any(sql, params);
 
-    res.render('pages/search_results', {
+    res.render('pages/searchResults', {
       title: "Search Results",
       layout: "main",
-      plants: results,
-      q,
+      results: results,
+      query: q,
       season
     });
 
   } catch (err) {
-    console.error("Search error:", err);
-    res.status(500).send("Internal Server Error");
-  }
+    console.error("Search error:", err.message, err);
+    //res.status(500).send("Internal Server Error");
+    res.status(500).render('pages/searchResults', {
+      title: "Search Results",
+      layout: "main",
+      results: [],
+      query: req.query.q || "",
+      season: req.query.season || "all",
+      error: "Something went wrong. Please try again."
+  });
+}
 });
+
+
 
 // *****************************************************
 // Section 5 : Start Server
