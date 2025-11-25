@@ -265,7 +265,7 @@ app.get('/logPlants', requireAuth, async (req, res) => {
 
 
 
-app.post('/logPlant', requireAuth, async (req, res) => {
+app.post('/logPlants', requireAuth, async (req, res) => {
   const { plant_id, photo_url } = req.body;
   if (!plant_id) return res.status(400).send('plant_id is required');
 
