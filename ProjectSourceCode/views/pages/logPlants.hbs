@@ -1,21 +1,46 @@
 <h1>Log a New Plant</h1>
-<p>Please enter plant name and information</p>
+<p>Please enter the plant name and optional information below.</p>
 
-<form action="/logPlants" method = "POST">
+{{#if error}}
+  <div class="error">{{error}}</div>
+{{/if}}
+
+<form action="/logPlants" method="POST">
     <div>
-        <label for="plant_id">Plant Name:</label>
-        <input type="text" id="plant_id" name="plant_id" required>
+        <label for="name">Plant Name</label>
+        <input 
+            type="text" 
+            id="name" 
+            name="name" 
+            value="{{enteredName}}" 
+            required
+            placeholder="e.g., Peony"
+        >
     </div>
+
     <div>
         <label for="sci_name">Scientific Name:</label>
-        <input type="text" id="sci_name" name="sci_name">
+        <input 
+            type="text" 
+            id="sci_name" 
+            name="sci_name" 
+            value="{{enteredSciName}}"
+            placeholder="e.g., Paeonia suffruticosa"
+        >
     </div>
+
     <div>
-        <label for="photo_url"> Photo URL: </label>
-        <input type="url" id="photo_url" name="photo_url">
-
+        <label for="photo_url">Photo URL:</label>
+        <input 
+            type="url" 
+            id="photo_url" 
+            name="photo_url" 
+            value="{{enteredPhotoUrl}}"
+            placeholder="https://example.com/peony.jpg"
+        >
     </div>
-    <button type="submit">Log Plant</button>
 
+    <div>
+        <button type="submit">Log Plant</button>
+    </div>
 </form>
-
