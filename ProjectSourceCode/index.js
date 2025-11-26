@@ -292,7 +292,7 @@ app.post('/logPlants', requireAuth, async (req, res) => {
   
     if (!plant) {
       plant = await db.one(
-        `INSERT INTO plants (name, sci_name, plant_type, season, plant_description, Latitude, Longitude, img_url)
+        `INSERT INTO plants (name, sci_name, plant_type, season, plant_description, Latitude, Longitude, photo_url)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          RETURNING plant_id`,
         [
@@ -341,7 +341,7 @@ app.get('/activity', requireAuth, async (req, res) => {
          to_char(pl.logged_at AT TIME ZONE 'America/Denver', 'YYYY-MM-DD HH24:MI') AS logged_at_str,
          p.plant_id,
          p.name AS plant_name,
-         COALESCE(pl.photo_url, p.img_url) AS photo_url
+         COALESCE(pl.photo_url, p.photo_url) AS photo_url
        FROM plant_logs pl
        JOIN plants p ON p.plant_id = pl.plant_id
        WHERE pl.user_id = $1
@@ -596,7 +596,7 @@ app.get('/api/plants', requireAuth, async (req, res) => {
       SELECT p.plant_id AS id,
              p.name,
              p.plant_type AS type,
-             pl.plant_description AS description,
+             p.plant_description AS description,
              pl.photo_url,
              pl.is_public,
              p."Latitude" AS latitude,
@@ -612,7 +612,7 @@ app.get('/api/plants', requireAuth, async (req, res) => {
              p.name,
              p.plant_type AS type,
              pl.description,
-             pl.image_url,
+             pl.photo_url,
              pl.is_public,
              p."Latitude" AS latitude,
              p."Longitude" AS longitude
