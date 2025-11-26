@@ -599,8 +599,8 @@ app.get('/api/plants', requireAuth, async (req, res) => {
              p.plant_description AS description,
              pl.photo_url,
              pl.is_public,
-             p."Latitude" AS latitude,
-             p."Longitude" AS longitude
+             p."latitude",
+             p."longitude" 
       FROM plant_logs pl
       JOIN plants p ON pl.plant_id = p.plant_id
       WHERE pl.user_id = $1
