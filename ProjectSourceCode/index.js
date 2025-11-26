@@ -309,8 +309,8 @@ app.post('/logPlants', requireAuth, async (req, res) => {
     }
 
     await db.none(
-      `INSERT INTO plant_logs (user_id, plant_id, description, photo_url, is_public)
-       VALUES ($1, $2, $3, $4, $5)`,
+      `INSERT INTO plant_logs (user_id, plant_id, photo_url, is_public)
+       VALUES ($1, $2, $3, $4)`,
       [req.session.user.id, plant.plant_id, photo_url || null, publicFlag]
     );
 
