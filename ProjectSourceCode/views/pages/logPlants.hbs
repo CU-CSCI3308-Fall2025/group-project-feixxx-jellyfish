@@ -49,9 +49,8 @@
         <option value="Fall">Fall</option>
         <option value="Winter">Winter</option>
     </select>
-</div>
-
   </div>
+
 
   <div class="form-group">
     <label for="plant_description">Description</label>
@@ -87,14 +86,21 @@
   </div>
 
   <div class="form-group">
-    <label for="img_url">Image URL</label>
+    <label for="photo_url">Image URL</label>
     <input 
       type="url" 
-      id="img_url" 
-      name="img_url" 
+      id="photo_url" 
+      name="photo_url" 
       placeholder="https://example.com/image.jpg"
-      value="{{enteredImgUrl}}"
+      value="{{enteredPhotoUrl}}"
     >
+  </div>
+
+  <div class = "form-group">
+    <label>
+      <input type="checkbox" name="is_public">
+      Make this plant log public?
+    </label>
   </div>
 
   <div class="form-group">

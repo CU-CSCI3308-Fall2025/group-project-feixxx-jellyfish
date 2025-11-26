@@ -270,7 +270,8 @@ app.get('/logPlants', requireAuth, async (req, res) => {
 
 app.post('/logPlants', requireAuth, async (req, res) => {
   try {
-    const { name, sci_name, photo_url } = req.body;
+    const { name, sci_name, photo_url, is_public } = req.body;
+    const publicFlag = is_public === "on";
 
     if (!name || name.trim() === '') {
       return res.status(400).render('pages/logPlants', {
@@ -298,9 +299,9 @@ app.post('/logPlants', requireAuth, async (req, res) => {
       );
     }
     await db.none(
-      `INSERT INTO plant_logs (user_id, plant_id, photo_url)
-       VALUES ($1, $2, $3)`,
-      [req.session.user.id, plant.plant_id, photo_url || null]
+      `INSERT INTO plant_logs (user_id, plant_id, photo_url, is_public)
+       VALUES ($1, $2, $3, $4)`,
+      [req.session.user.id, plant.plant_id, photo_url || null, publicFlag]
     );
 
   
@@ -576,7 +577,7 @@ async function seedUsers() {
 // call once (after db connects)
 seedUsers().catch(err => console.error('Seed error:', err));
  
-
+/*
 app.get('/api/plants', async(req, res) => {
   try {
     if (!req.session.user){
@@ -612,6 +613,7 @@ app.get('/api/plants', async(req, res) => {
     res.status(500).json({error: "Server error"});
   }
 });
+*/
 
 //searchbar functionality
 

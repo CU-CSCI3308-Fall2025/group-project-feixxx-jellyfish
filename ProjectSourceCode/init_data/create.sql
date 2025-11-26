@@ -33,5 +33,7 @@ CREATE TABLE IF NOT EXISTS plant_logs (
 
   logged_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   photo_url TEXT
+
+  is_public BOOLEAN NOT NULL DEFAULT FALSE;
 );
 
