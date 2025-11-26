@@ -341,7 +341,7 @@ app.get('/activity', requireAuth, async (req, res) => {
          to_char(pl.logged_at AT TIME ZONE 'America/Denver', 'YYYY-MM-DD HH24:MI') AS logged_at_str,
          p.plant_id,
          p.name AS plant_name,
-         COALESCE(pl.photo_url, p.photo_url) AS photo_url
+         pl.photo_url
        FROM plant_logs pl
        JOIN plants p ON p.plant_id = pl.plant_id
        WHERE pl.user_id = $1
