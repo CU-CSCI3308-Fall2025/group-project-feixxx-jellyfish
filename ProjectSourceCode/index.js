@@ -611,11 +611,11 @@ app.get('/api/plants', requireAuth, async (req, res) => {
       SELECT p.plant_id AS id,
              p.name,
              p.plant_type AS type,
-             pl.description,
+             p.plant_description AS description,
              pl.photo_url,
              pl.is_public,
-             p."Latitude" AS latitude,
-             p."Longitude" AS longitude
+             p."latitude",
+             p."longitude"
       FROM plant_logs pl
       JOIN plants p ON pl.plant_id = p.plant_id
       WHERE pl.is_public = TRUE AND pl.user_id != $1
