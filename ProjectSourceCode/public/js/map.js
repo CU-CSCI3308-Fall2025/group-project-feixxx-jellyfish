@@ -121,7 +121,7 @@ async function loadPlants() {
 
       const popupHtml = `
         <div style="text-align:center;">
-          ${plant.image_url ? `<img src="${plant.image_url}" width="120" style="border-radius:8px;"><br>` : ''}
+          ${plant.photo_url ? `<img src="${plant.photo_url}" width="120" style="border-radius:8px;"><br>` : ''}
           <b>${plant.type}</b><br>
           <em>${plant.description}</em><br>
           <a href="/plant/${plant.id}" target="_blank">View full log</a>
@@ -137,7 +137,7 @@ async function loadPlants() {
     publicPlants.forEach(plant => {
       const popupHtml = `
         <div style="text-align:center;">
-          ${plant.image_url ? `<img src="${plant.image_url}" width="120" style="border-radius:8px;"><br>` : ''}
+          ${plant.photo_url ? `<img src="${plant.photo_url}" width="120" style="border-radius:8px;"><br>` : ''}
           <b>${plant.type}</b><br>
           <em>${plant.description}</em><br>
           <a href="/plant/${plant.id}" target="_blank">View full log</a>

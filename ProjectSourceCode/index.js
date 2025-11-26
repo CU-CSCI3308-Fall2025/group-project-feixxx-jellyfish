@@ -270,7 +270,7 @@ app.get('/logPlants', requireAuth, async (req, res) => {
 
 app.post('/logPlants', requireAuth, async (req, res) => {
   try {
-    const { name, sci_name, photo_url, is_public } = req.body;
+    const { name, sci_name, plant_type, season, plant_description, Latitude, Longitude, photo_url, is_public } = req.body;
     const publicFlag = is_public === "on";
 
     if (!name || name.trim() === '') {
@@ -292,15 +292,25 @@ app.post('/logPlants', requireAuth, async (req, res) => {
   
     if (!plant) {
       plant = await db.one(
-        `INSERT INTO plants (name, sci_name, img_url)
-         VALUES ($1, $2, $3)
+        `INSERT INTO plants (name, sci_name, plant_type, season, plant_description, Latitude, Longitude, img_url)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          RETURNING plant_id`,
-        [name.trim(), sci_name || null, photo_url || null]
+        [
+          name.trim(),
+          sci_name || null,
+          plant_type || null,
+          season || null,
+          plant_description || null,
+          Latitude || null,
+          Longitude || null,
+          photo_url || null
+        ]
       );
     }
+
     await db.none(
-      `INSERT INTO plant_logs (user_id, plant_id, photo_url, is_public)
-       VALUES ($1, $2, $3, $4)`,
+      `INSERT INTO plant_logs (user_id, plant_id, description, photo_url, is_public)
+       VALUES ($1, $2, $3, $4, $5)`,
       [req.session.user.id, plant.plant_id, photo_url || null, publicFlag]
     );
 
@@ -577,30 +587,39 @@ async function seedUsers() {
 // call once (after db connects)
 seedUsers().catch(err => console.error('Seed error:', err));
  
-/*
-app.get('/api/plants', async(req, res) => {
+app.get('/api/plants', requireAuth, async (req, res) => {
   try {
-    if (!req.session.user){
-      return res.status(401).json({error: 'Not logged in'});
-    }
-
     const currentUserId = req.session.user.id;
 
-    const myPlants = await db.any(
-      `SELECT id, user_id, name, is_public, latitude, longitude, 
-              description, image_url, date_observed, type
-       FROM plants 
-       WHERE user_id = $1`,
-      [currentUserId]
-    );
+    // Fetch current user's plant logs
+    const myPlants = await db.any(`
+      SELECT p.plant_id AS id,
+             p.name,
+             p.plant_type AS type,
+             pl.plant_description AS description,
+             pl.photo_url,
+             pl.is_public,
+             p."Latitude" AS latitude,
+             p."Longitude" AS longitude
+      FROM plant_logs pl
+      JOIN plants p ON pl.plant_id = p.plant_id
+      WHERE pl.user_id = $1
+    `, [currentUserId]);
 
-    const publicPlants = await db.any(
-      `SELECT id, user_id, name, is_public, latitude, longitude, 
-              description, image_url, date_observed, type
-       FROM plants 
-       WHERE is_public = TRUE AND user_id != $1`,
-      [currentUserId]
-    );
+    // Fetch other users' public plant logs
+    const publicPlants = await db.any(`
+      SELECT p.plant_id AS id,
+             p.name,
+             p.plant_type AS type,
+             pl.description,
+             pl.image_url,
+             pl.is_public,
+             p."Latitude" AS latitude,
+             p."Longitude" AS longitude
+      FROM plant_logs pl
+      JOIN plants p ON pl.plant_id = p.plant_id
+      WHERE pl.is_public = TRUE AND pl.user_id != $1
+    `, [currentUserId]);
 
     return res.json({
       currentUserId,
@@ -610,10 +629,10 @@ app.get('/api/plants', async(req, res) => {
 
   } catch (err) {
     console.error('Error fetching plants', err);
-    res.status(500).json({error: "Server error"});
+    res.status(500).json({ error: "Server error" });
   }
 });
-*/
+
 
 //searchbar functionality
 
