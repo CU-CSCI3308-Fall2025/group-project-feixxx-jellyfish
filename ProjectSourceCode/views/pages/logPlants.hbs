@@ -1,0 +1,109 @@
+<h1>Log a New Plant</h1>
+<p>Please enter the plant details below. Fields marked with * are required.</p>
+
+{{#if error}}
+  <div class="error">{{error}}</div>
+{{/if}}
+
+<form action="/logPlants" method="POST" class="log-plant-form">
+  <div class="form-group">
+    <label for="name">Plant Name *</label>
+    <input 
+      type="text" 
+      id="name" 
+      name="name" 
+      value="{{enteredName}}" 
+      required
+      placeholder="e.g., Sunflower"
+    >
+  </div>
+
+  <div class="form-group">
+    <label for="sci_name">Scientific Name</label>
+    <input 
+      type="text" 
+      id="sci_name" 
+      name="sci_name" 
+      value="{{enteredSciName}}"
+      placeholder="e.g., Helianthus annuus"
+    >
+  </div>
+
+  <div class="form-group">
+    <label for="plant_type">Plant Type</label>
+    <input 
+        type="text" 
+        id="plant_type" 
+        name="plant_type" 
+        value="{{enteredPlantType}}"
+        placeholder="e.g., Flower, Tree, Shrub"
+    >
+  </div>
+
+  <div class="form-group">
+    <label for="season">Season:</label>
+    <select id="season" name="season">
+        <option value="">--Select season--</option>
+        <option value="Spring">Spring</option>
+        <option value="Summer">Summer</option>
+        <option value="Fall">Fall</option>
+        <option value="Winter">Winter</option>
+    </select>
+  </div>
+
+
+  <div class="form-group">
+    <label for="plant_description">Description</label>
+    <textarea 
+      id="plant_description" 
+      name="plant_description" 
+      placeholder="Optional description of the plant"
+    >{{enteredDescription}}</textarea>
+  </div>
+
+  <div class="form-group">
+    <label for="Latitude">Latitude</label>
+    <input 
+      type="number" 
+      step="0.000001" 
+      id="Latitude" 
+      name="Latitude" 
+      placeholder="e.g., 40.01499" 
+      value="{{enteredLatitude}}"
+    >
+  </div>
+
+  <div class="form-group">
+    <label for="Longitude">Longitude</label>
+    <input 
+      type="number" 
+      step="0.000001" 
+      id="Longitude" 
+      name="Longitude" 
+      placeholder="e.g., -105.2705" 
+      value="{{enteredLongitude}}"
+    >
+  </div>
+
+  <div class="form-group">
+    <label for="photo_url">Image URL</label>
+    <input 
+      type="url" 
+      id="photo_url" 
+      name="photo_url" 
+      placeholder="https://example.com/image.jpg"
+      value="{{enteredPhotoUrl}}"
+    >
+  </div>
+
+  <div class = "form-group">
+    <label>
+      <input type="checkbox" name="is_public">
+      Make this plant log public?
+    </label>
+  </div>
+
+  <div class="form-group">
+    <button type="submit">Log Plant</button>
+  </div>
+</form>

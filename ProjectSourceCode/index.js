@@ -240,6 +240,9 @@ app.post('/register', async (req, res) => {
   }
 });
 
+
+
+
 app.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
 });
@@ -249,24 +252,86 @@ app.get('/map', (req, res) => {
 });
 
 // POST /log-plant
-app.post('/log-plant', requireAuth, async (req, res) => {
-  const { plant_id, photo_url } = req.body;
-  if (!plant_id) return res.status(400).send('plant_id is required');
+app.get('/logPlants', requireAuth, async (req, res) => {
+  try {
+    // Optional: fetch existing plants for a dropdown
+    const plants = await db.any(`SELECT plant_id, name FROM plants ORDER BY name`);
 
-  await db.none(
-    `INSERT INTO plant_logs (user_id, plant_id, photo_url)
-     VALUES ($1, $2, $3)`,
-    [req.session.user.id, plant_id, photo_url || null]
-  );
+    res.render('pages/logPlants', {
+      layout: 'main',
+      title: 'Log a New Plant',
+      plants
+    });
+  } catch (err) {
+    console.error('Cannot load plant logging page', err);
+    res.status(500).send('Server error');
+  }
+});
 
-  // optional: also save as favorite
-  await db.none(
-    `INSERT INTO users_plants (user_id, plant_id)
-     VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-    [req.session.user.id, plant_id]
-  );
 
-  res.redirect('/activity');
+
+app.post('/logPlants', requireAuth, async (req, res) => {
+  try {
+    const { name, sci_name, plant_type, season, plant_description, Latitude, Longitude, photo_url, is_public } = req.body;
+    const publicFlag = is_public === "on";
+
+    if (!name || name.trim() === '') {
+      return res.status(400).render('pages/logPlants', {
+        layout: 'main',
+        error: 'Plant name is required',
+        enteredName: name,
+        enteredSciName: sci_name,
+        enteredPhotoUrl: photo_url
+      });
+    }
+
+   //Check if plant already exists
+    let plant = await db.oneOrNone(
+      'SELECT plant_id FROM plants WHERE name = $1',
+      [name.trim()]
+    );
+
+  
+    if (!plant) {
+      plant = await db.one(
+        `INSERT INTO plants (name, sci_name, plant_type, season, plant_description, Latitude, Longitude, photo_url)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         RETURNING plant_id`,
+        [
+          name.trim(),
+          sci_name || null,
+          plant_type || null,
+          season || null,
+          plant_description || null,
+          Latitude || null,
+          Longitude || null,
+          photo_url || null
+        ]
+      );
+    }
+
+    await db.none(
+      `INSERT INTO plant_logs (user_id, plant_id, photo_url, is_public)
+       VALUES ($1, $2, $3, $4)`,
+      [req.session.user.id, plant.plant_id, photo_url || null, publicFlag]
+    );
+
+  
+    await db.none(
+      `INSERT INTO users_plants (user_id, plant_id)
+       VALUES ($1, $2)
+       ON CONFLICT DO NOTHING`,
+      [req.session.user.id, plant.plant_id]
+    );
+
+    res.redirect('/activity');
+  } catch (err) {
+    console.error('Error logging plant:', err);
+    res.status(500).render('pages/logPlants', {
+      layout: 'main',
+      error: 'Something went wrong. Please try again.'
+    });
+  }
 });
 
 // GET /activity  — show last 5 logs (newest first). Empty list is OK.
@@ -278,7 +343,7 @@ app.get('/activity', requireAuth, async (req, res) => {
          to_char(pl.logged_at AT TIME ZONE 'America/Denver', 'YYYY-MM-DD HH24:MI') AS logged_at_str,
          p.plant_id,
          p.name AS plant_name,
-         COALESCE(pl.photo_url, p.img_url) AS photo_url
+         pl.photo_url
        FROM plant_logs pl
        JOIN plants p ON p.plant_id = pl.plant_id
        WHERE pl.user_id = $1
@@ -463,9 +528,7 @@ app.post('/profile/confirm-email-change', requireAuth, async (req, res) => {
     return res.redirect('/profile');
   }
 });
-
-
-
+   
 
 
 function requireAuth(req, res, next) {
@@ -528,30 +591,39 @@ async function seedUsers() {
 // call once (after db connects)
 seedUsers().catch(err => console.error('Seed error:', err));
  
-
-app.get('/api/plants', async(req, res) => {
+app.get('/api/plants', requireAuth, async (req, res) => {
   try {
-    if (!req.session.user){
-      return res.status(401).json({error: 'Not logged in'});
-    }
-
     const currentUserId = req.session.user.id;
 
-    const myPlants = await db.any(
-      `SELECT id, user_id, name, is_public, latitude, longitude, 
-              description, image_url, date_observed, type
-       FROM plants 
-       WHERE user_id = $1`,
-      [currentUserId]
-    );
+    // Fetch current user's plant logs
+    const myPlants = await db.any(`
+      SELECT p.plant_id AS id,
+             p.name,
+             p.plant_type AS type,
+             p.plant_description AS description,
+             pl.photo_url,
+             pl.is_public,
+             p."latitude",
+             p."longitude" 
+      FROM plant_logs pl
+      JOIN plants p ON pl.plant_id = p.plant_id
+      WHERE pl.user_id = $1
+    `, [currentUserId]);
 
-    const publicPlants = await db.any(
-      `SELECT id, user_id, name, is_public, latitude, longitude, 
-              description, image_url, date_observed, type
-       FROM plants 
-       WHERE is_public = TRUE AND user_id != $1`,
-      [currentUserId]
-    );
+    // Fetch other users' public plant logs
+    const publicPlants = await db.any(`
+      SELECT p.plant_id AS id,
+             p.name,
+             p.plant_type AS type,
+             p.plant_description AS description,
+             pl.photo_url,
+             pl.is_public,
+             p."latitude",
+             p."longitude"
+      FROM plant_logs pl
+      JOIN plants p ON pl.plant_id = p.plant_id
+      WHERE pl.is_public = TRUE AND pl.user_id != $1
+    `, [currentUserId]);
 
     return res.json({
       currentUserId,
@@ -561,16 +633,17 @@ app.get('/api/plants', async(req, res) => {
 
   } catch (err) {
     console.error('Error fetching plants', err);
-    res.status(500).json({error: "Server error"});
+    res.status(500).json({ error: "Server error" });
   }
 });
+
 
 //searchbar functionality
 
 app.get('/search', async (req, res) => {
   try {
     const { q, season } = req.query;
-
+    
     // Base SQL and params
     let sql = `SELECT * FROM plants WHERE is_public = TRUE`;
     const params = [];
@@ -609,16 +682,26 @@ app.get('/search', async (req, res) => {
     res.render('pages/searchResults', {
       title: "Search Results",
       layout: "main",
-      plants: results,
-      q,
+      results: results,
+      query: q,
       season
     });
 
   } catch (err) {
-    console.error("Search error:", err);
-    res.status(500).send("Internal Server Error");
-  }
+    console.error("Search error:", err.message, err);
+    //res.status(500).send("Internal Server Error");
+    res.status(500).render('pages/searchResults', {
+      title: "Search Results",
+      layout: "main",
+      results: [],
+      query: req.query.q || "",
+      season: req.query.season || "all",
+      error: "Something went wrong. Please try again."
+  });
+}
 });
+
+
 
 // *****************************************************
 // Section 5 : Start Server
