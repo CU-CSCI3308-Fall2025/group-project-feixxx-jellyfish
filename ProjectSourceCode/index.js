@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');// for email verification 
+const { createGzip } = require('zlib');
 
 require('dotenv').config();
 
@@ -21,7 +22,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Section 2 : Connect to DB
 // *****************************************************
 const dbConfig = {
-  host: process.env.PGHOST || 'dpg-d4fkfare5dus73clb2f0-a',
+  host: process.env.PGHOST || 'localhost',
   port: process.env.PGPORT || 5432,
   database: process.env.POSTGRES_DB,
   user: process.env.POSTGRES_USER,
@@ -511,7 +512,7 @@ async function seedUsers() {
 
   for (const u of users) {
     // await is allowed inside an async function
-    console.log(`Seeding user: ${u.username}`);
+    console.log(`Seeding user: ${u.first_name}`);
     const hash = await bcrypt.hash(u.password, 10);
     await db.none(
       `INSERT INTO users (first_name, last_name, email, password)
@@ -525,8 +526,41 @@ async function seedUsers() {
   console.log('Sample users seeded');
 }
 
-// call once (after db connects)
 seedUsers().catch(err => console.error('Seed error:', err));
+
+async function seedPlants() {
+  const plants = [
+    {
+      name: 'Rose',
+      sci_name: 'Rosa',
+      plant_type: 'Flower',
+      is_public: true,
+      date_observed: '2023-04-15',
+      season: 'spring',
+      plant_description: 'A beautiful flowering plant.',
+      Latitude: 40.7128,
+      Longitude: -74.0060,
+      img_url: 'https://darbycreektrading.com/cdn/shop/articles/6445467755_480db935de_b_1024x.jpg?v=1580850572'
+    },
+  ];
+
+
+  for (const p of plants) {
+    // await is allowed inside an async function
+    console.log(`Seeding Plant: ${p.name}`);
+    await db.none(
+      `INSERT INTO plants (name, sci_name, plant_type, season, is_public, date_observed, plant_description, Latitude, Longitude, img_url)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [p.name, p.sci_name, p.plant_type, p.season, p.is_public, p.date_observed, p.plant_description, p.Latitude, p.Longitude, p.img_url]
+    );
+  }
+ 
+
+  console.log('Sample plants seeded');
+}
+
+// call once (after db connects)
+seedPlants().catch(err => console.error('Seed error:', err));
  
 
 app.get('/api/plants', async(req, res) => {
@@ -538,8 +572,8 @@ app.get('/api/plants', async(req, res) => {
     const currentUserId = req.session.user.id;
 
     const myPlants = await db.any(
-      `SELECT id, user_id, name, is_public, latitude, longitude, 
-              description, image_url, date_observed, type
+      `SELECT plant_id, name, is_public, latitude, longitude, 
+              description, image_url, date_observed, plant_type
        FROM plants 
        WHERE user_id = $1`,
       [currentUserId]
@@ -569,23 +603,22 @@ app.get('/api/plants', async(req, res) => {
 
 app.get('/search', async (req, res) => {
   try {
-    const { q, season } = req.query;
+    const { q, category } = req.query;
+    console.log(`Search query: ${q}, category: ${category}`);
 
-    // Base SQL and params
-    let sql = `SELECT * FROM plants WHERE is_public = TRUE`;
+    let sql = `SELECT * FROM plants WHERE 1=1`;
     const params = [];
 
     // Text search
     if (q && q.trim() !== '') {
       params.push(`%${q.toLowerCase()}%`);
-      sql += ` AND LOWER(name) LIKE $${params.length}`;
     }
+    console.log(params[0]);
 
-    // Season filter  
-    if (season && season !== 'all') {
+    // Season filter
+    if (category && category !== 'All') {
       let startMonth, endMonth;
-
-      switch (season) {
+      switch (category.toLowerCase()) {
         case 'spring': startMonth = 3; endMonth = 5; break;
         case 'summer': startMonth = 6; endMonth = 8; break;
         case 'fall':   startMonth = 9; endMonth = 11; break;
@@ -593,14 +626,16 @@ app.get('/search', async (req, res) => {
       }
 
       if (startMonth < endMonth) {
-        // Normal range
         params.push(startMonth, endMonth);
-        sql += ` AND EXTRACT(MONTH FROM date_observed) BETWEEN $${params.length - 1} AND $${params.length}`;
+        sql += ` AND EXTRACT(MONTH FROM date_observed)
+                 BETWEEN $${params.length - 1} AND $${params.length}`;
       } else {
-        // Winter (wraps year-end)
+        // Winter wrap case
         params.push(startMonth, endMonth);
-        sql += ` AND (EXTRACT(MONTH FROM date_observed) >= $${params.length - 1}
-                    OR EXTRACT(MONTH FROM date_observed) <= $${params.length})`;
+        sql += ` AND (
+                    EXTRACT(MONTH FROM date_observed) >= $${params.length - 1}
+                 OR EXTRACT(MONTH FROM date_observed) <= $${params.length}
+                 )`;
       }
     }
 
@@ -611,7 +646,7 @@ app.get('/search', async (req, res) => {
       layout: "main",
       plants: results,
       q,
-      season
+      category
     });
 
   } catch (err) {
@@ -619,6 +654,7 @@ app.get('/search', async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+
 
 // *****************************************************
 // Section 5 : Start Server
