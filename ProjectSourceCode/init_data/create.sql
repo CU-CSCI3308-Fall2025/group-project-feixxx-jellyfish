@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS plants(
     plant_description TEXT,
     Latitude DOUBLE PRECISION,
     Longitude DOUBLE PRECISION,
-    img_url TEXT
+    photo_url TEXT
 );
 
 CREATE TABLE IF NOT EXISTS users_plants(
@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS plant_logs (
   plant_id INT NOT NULL REFERENCES plants(plant_id) ,
 
   logged_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  photo_url TEXT
+  photo_url TEXT,
+
+  is_public BOOLEAN NOT NULL DEFAULT FALSE;
 );
 
