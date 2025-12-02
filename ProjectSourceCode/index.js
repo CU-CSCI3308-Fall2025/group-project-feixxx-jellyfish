@@ -41,10 +41,65 @@ const mailer = nodemailer.createTransport({
 });
 
 
+// Add these functions
+async function clearDatabaseData() {
+  try {
+    // Clear data but keep tables
+    await db.none('DELETE FROM plant_logs');
+    await db.none('DELETE FROM users_plants');
+    await db.none('DELETE FROM plants');
+    await db.none('DELETE FROM users');
+    
+    // Reset sequences
+    await db.none('ALTER SEQUENCE users_id_seq RESTART WITH 1');
+    await db.none('ALTER SEQUENCE plants_plant_id_seq RESTART WITH 1');
+    await db.none('ALTER SEQUENCE plant_logs_id_seq RESTART WITH 1');
+    
+    console.log('✅ Database data cleared');
+    return true;
+  } catch (err) {
+    console.error('❌ Database clear error:', err);
+    return false;
+  }
+}
+
+async function createTablesIfNotExist() {
+  try {
+    // Your CREATE TABLE IF NOT EXISTS statements here
+    await db.none(`CREATE TABLE IF NOT EXISTS users (...)`);
+    await db.none(`CREATE TABLE IF NOT EXISTS plants (...)`);
+    await db.none(`CREATE TABLE IF NOT EXISTS users_plants (...)`);
+    await db.none(`CREATE TABLE IF NOT EXISTS plant_logs (...)`);
+    
+    console.log('✅ Tables checked/created');
+    return true;
+  } catch (err) {
+    console.error('❌ Table creation error:', err);
+    return false;
+  }
+}
+
+async function initializeDatabase() {
+  try {
+    // Always clear data on startup
+    await clearDatabaseData();
+    
+    // Seed data
+    await seedUsers();
+    await seedPlants();
+    
+    console.log('✅ Database initialized with fresh data');
+  } catch (err) {
+    console.error('❌ Database initialization error:', err);
+  }
+}
+
+// Update your connection
 db.connect()
   .then(obj => {
     console.log('✅ Database connection successful');
     obj.done();
+    return initializeDatabase();
   })
   .catch(error => {
     console.log('❌ Database connection error:', error.message || error);
@@ -52,10 +107,36 @@ db.connect()
 
 
 
+// Configure Handlebars with helpers
+const hbs = handlebars.create({
+  extname: 'hbs',
+  helpers: {
+    // Format date
+    formatDate: function(date) {
+      if (!date) return '';
+      const d = new Date(date);
+      return d.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    },
+    // Check if user is logged in
+    ifUser: function(user, options) {
+      if (user) {
+        return options.fn(this);
+      } else {
+        return options.inverse(this);
+      }
+    }
+  }
+});
+
+app.engine('hbs', hbs.engine);
+
 // *****************************************************
 // Section 3 : App Settings
 // *****************************************************
-app.engine('hbs', handlebars.engine({ extname: 'hbs' }));
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -545,7 +626,56 @@ app.post('/profile/cancel-email-change', requireAuth, (req, res) => {
 
 
 
-
+// Individual plant view
+app.get('/plants/:id', async (req, res) => {
+  try {
+    const plantId = req.params.id;
+    
+    // Get the plant details
+    const plant = await db.oneOrNone(
+      `SELECT * FROM plants WHERE plant_id = $1`,
+      [plantId]
+    );
+    
+    if (!plant) {
+      return res.status(404).render('pages/plantView', {
+        layout: 'main',
+        title: 'Plant Not Found',
+        plant: null
+      });
+    }
+    
+    // Get related plants (same type or season)
+    const relatedPlants = await db.any(
+      `SELECT plant_id, name, photo_url, plant_type, season 
+       FROM plants 
+       WHERE (plant_type = $1 OR season = $2) 
+         AND plant_id != $3 
+         AND is_public = TRUE
+       LIMIT 4`,
+      [plant.plant_type, plant.season, plantId]
+    );
+    
+    res.render('pages/plantView', {
+      layout: 'main',
+      title: `${plant.name} | Plant Details`,
+      plant: {
+        ...plant,
+        bloom_season: plant.season // Add bloom_season for consistency
+      },
+      relatedPlants
+    });
+    
+  } catch (err) {
+    console.error('Plant view error:', err);
+    res.status(500).render('pages/plantView', {
+      layout: 'main',
+      title: 'Error',
+      plant: null,
+      error: 'Could not load plant details.'
+    });
+  }
+});
 
 // *****************************************************
 // Section 4.1 : Sample user credentials insertion
@@ -608,6 +738,8 @@ app.get('/api/plants', requireAuth, async (req, res) => {
       FROM plant_logs pl
       JOIN plants p ON pl.plant_id = p.plant_id
       WHERE pl.user_id = $1
+        AND p."latitude" IS NOT NULL
+        AND p."longitude" IS NOT NULL
     `, [currentUserId]);
 
     // Fetch other users' public plant logs
@@ -622,7 +754,10 @@ app.get('/api/plants', requireAuth, async (req, res) => {
              p."longitude"
       FROM plant_logs pl
       JOIN plants p ON pl.plant_id = p.plant_id
-      WHERE pl.is_public = TRUE AND pl.user_id != $1
+      WHERE pl.is_public = TRUE 
+        AND pl.user_id != $1
+        AND p."latitude" IS NOT NULL
+        AND p."longitude" IS NOT NULL
     `, [currentUserId]);
 
     return res.json({
@@ -674,7 +809,7 @@ async function seedPlants() {
       plant_description: 'Shrub with red berries, also known as Christmas berry or Hollywood plant.',
       latitude: 34.1,
       longitude: -118.35,
-      photo_url: '/assets/sample_pics/toyon.jpg'
+      photo_url: 'https://www.gardenia.net/wp-content/uploads/2023/05/heteromeles-arbutifolia.webp'
     }
   ];
 
@@ -716,50 +851,69 @@ app.get('/search', async (req, res) => {
     // Base SQL and params
     let sql = `SELECT * FROM plants WHERE is_public = TRUE`;
     const params = [];
+    let paramCount = 0;
 
-    // Text search
+    // Text search - fixed logic
     if (q && q.trim() !== '') {
-      params.push(`%${q.toLowerCase()}%`);
+      paramCount++;
+      params.push(`%${q.trim().toLowerCase()}%`);
+      sql += ` AND LOWER(name) LIKE $${paramCount}`;
     }
-    console.log(params[0]);
 
-    // Season filter
-    if (category && category !== 'All') {
+    // Season filter - use 'season' not 'category'
+    if (season && season !== 'All') {
       let startMonth, endMonth;
-      switch (category.toLowerCase()) {
+      switch (season.toLowerCase()) {
         case 'spring': startMonth = 3; endMonth = 5; break;
         case 'summer': startMonth = 6; endMonth = 8; break;
         case 'fall':   startMonth = 9; endMonth = 11; break;
         case 'winter': startMonth = 12; endMonth = 2; break;
+        default: startMonth = endMonth = null;
       }
 
-      if (startMonth < endMonth) {
-        params.push(startMonth, endMonth);
-        sql += ` AND EXTRACT(MONTH FROM date_observed)
-                 BETWEEN $${params.length - 1} AND $${params.length}`;
-      } else {
-        // Winter wrap case
-        params.push(startMonth, endMonth);
-        sql += ` AND (
-                    EXTRACT(MONTH FROM date_observed) >= $${params.length - 1}
-                 OR EXTRACT(MONTH FROM date_observed) <= $${params.length}
+      if (startMonth && endMonth) {
+        if (startMonth < endMonth) {
+          paramCount++;
+          params.push(startMonth);
+          paramCount++;
+          params.push(endMonth);
+          sql += ` AND EXTRACT(MONTH FROM date_observed)
+                   BETWEEN $${paramCount - 1} AND $${paramCount}`;
+        } else {
+          // Winter wrap case (Dec-Feb)
+          paramCount++;
+          params.push(startMonth);
+          paramCount++;
+          params.push(endMonth);
+          sql += ` AND (
+                    EXTRACT(MONTH FROM date_observed) >= $${paramCount - 1}
+                 OR EXTRACT(MONTH FROM date_observed) <= $${paramCount}
                  )`;
+        }
       }
     }
 
+    console.log('Search SQL:', sql);
+    console.log('Search params:', params);
+    
     const results = await db.any(sql, params);
+    
+    // Transform results to match template expectations if needed
+    const transformedResults = results.map(plant => ({
+      ...plant,
+      bloom_season: plant.season // Map 'season' to 'bloom_season' for template
+    }));
 
     res.render('pages/searchResults', {
       title: "Search Results",
       layout: "main",
-      results: results,
-      query: q,
-      season
+      results: transformedResults,
+      query: q || '',
+      season: season || 'all'
     });
 
   } catch (err) {
     console.error("Search error:", err.message, err);
-    //res.status(500).send("Internal Server Error");
     res.status(500).render('pages/searchResults', {
       title: "Search Results",
       layout: "main",
@@ -767,8 +921,8 @@ app.get('/search', async (req, res) => {
       query: req.query.q || "",
       season: req.query.season || "all",
       error: "Something went wrong. Please try again."
-  });
-}
+    });
+  }
 });
 
 

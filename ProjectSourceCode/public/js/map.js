@@ -156,3 +156,5 @@ async function loadPlants() {
 
 // Call the function to populate map
 loadPlants();
+
+
