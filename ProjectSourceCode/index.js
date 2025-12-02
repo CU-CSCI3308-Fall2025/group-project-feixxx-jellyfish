@@ -638,6 +638,75 @@ app.get('/api/plants', requireAuth, async (req, res) => {
 });
 
 
+async function seedPlants() {
+  const plants = [
+    {
+      name: 'California Poppy',
+      sci_name: 'Eschscholzia californica',
+      plant_type: 'Flower',
+      season: 'Spring',
+      is_public: true,
+      date_observed: '2024-03-15',
+      plant_description: 'Bright orange native wildflower commonly found in open fields.',
+      latitude: 34.0522,
+      longitude: -118.2437,
+      photo_url: '/assets/sample_pics/poppy.jpg'
+    },
+    {
+      name: 'Coast Live Oak',
+      sci_name: 'Quercus agrifolia',
+      plant_type: 'Tree',
+      season: 'Year-round',
+      is_public: true,
+      date_observed: '2024-04-02',
+      plant_description: 'Large evergreen oak tree native to coastal California.',
+      latitude: 36.7783,
+      longitude: -119.4179,
+      photo_url: '/assets/sample_pics/oak.jpg'
+    },
+    {
+      name: 'Toyon',
+      sci_name: 'Heteromeles arbutifolia',
+      plant_type: 'Shrub',
+      season: 'Winter',
+      is_public: true,
+      date_observed: '2024-12-10',
+      plant_description: 'Shrub with red berries, also known as Christmas berry or Hollywood plant.',
+      latitude: 34.1,
+      longitude: -118.35,
+      photo_url: '/assets/sample_pics/toyon.jpg'
+    }
+  ];
+
+  for (const p of plants) {
+    console.log(`Seeding plant: ${p.name}`);
+
+    await db.none(
+      `INSERT INTO plants 
+       (name, sci_name, plant_type, season, is_public, date_observed,
+        plant_description, latitude, longitude, photo_url)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       ON CONFLICT DO NOTHING`,
+      [
+        p.name,
+        p.sci_name,
+        p.plant_type,
+        p.season,
+        p.is_public,
+        p.date_observed,
+        p.plant_description,
+        p.latitude,
+        p.longitude,
+        p.photo_url
+      ]
+    );
+  }
+
+  console.log('Sample plants seeded');
+}
+
+seedPlants().catch(err => console.error('Seed error:', err));
+
 //searchbar functionality
 
 app.get('/search', async (req, res) => {
