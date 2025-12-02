@@ -719,7 +719,6 @@ async function seedUsers() {
   console.log('Sample users seeded');
 }
 
-seedUsers().catch(err => console.error('Seed error:', err));
  
 app.get('/api/plants', requireAuth, async (req, res) => {
   try {
@@ -840,7 +839,6 @@ async function seedPlants() {
   console.log('Sample plants seeded');
 }
 
-seedPlants().catch(err => console.error('Seed error:', err));
 
 //searchbar functionality
 
