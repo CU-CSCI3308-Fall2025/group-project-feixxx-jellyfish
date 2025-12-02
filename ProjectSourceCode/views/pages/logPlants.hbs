@@ -1,12 +1,13 @@
-<h1>Log a New Plant</h1>
-<p>Please enter the plant details below. Fields marked with * are required.</p>
+<div class="container mt-3">
+<h3 class="text-center">Log a New Plant</h3>
+<p>Fields marked with * are required.</p>
 
 {{#if error}}
   <div class="error">{{error}}</div>
 {{/if}}
 
 <form action="/logPlants" method="POST" class="log-plant-form">
-  <div class="form-group">
+  <div class="form-group mb-3">
     <label for="name">Plant Name *</label>
     <input 
       type="text" 
@@ -18,7 +19,7 @@
     >
   </div>
 
-  <div class="form-group">
+  <div class="form-group  mb-3">
     <label for="sci_name">Scientific Name</label>
     <input 
       type="text" 
@@ -29,7 +30,7 @@
     >
   </div>
 
-  <div class="form-group">
+  <div class="form-group  mb-3">
     <label for="plant_type">Plant Type</label>
     <input 
         type="text" 
@@ -40,7 +41,7 @@
     >
   </div>
 
-  <div class="form-group">
+  <div class="form-group  mb-3">
     <label for="season">Season:</label>
     <select id="season" name="season">
         <option value="">--Select season--</option>
@@ -52,7 +53,7 @@
   </div>
 
 
-  <div class="form-group">
+  <div class="form-group  mb-3">
     <label for="plant_description">Description</label>
     <textarea 
       id="plant_description" 
@@ -61,7 +62,7 @@
     >{{enteredDescription}}</textarea>
   </div>
 
-  <div class="form-group">
+  <div class="form-group  mb-3">
     <label for="Latitude">Latitude</label>
     <input 
       type="number" 
@@ -73,7 +74,7 @@
     >
   </div>
 
-  <div class="form-group">
+  <div class="form-group  mb-3">
     <label for="Longitude">Longitude</label>
     <input 
       type="number" 
@@ -85,7 +86,7 @@
     >
   </div>
 
-  <div class="form-group">
+  <div class="form-group  mb-3">
     <label for="photo_url">Image URL</label>
     <input 
       type="url" 
@@ -96,14 +97,14 @@
     >
   </div>
 
-  <div class = "form-group">
+  <div class = "form-group  mb-3">
     <label>
       <input type="checkbox" name="is_public">
       Make this plant log public?
     </label>
   </div>
 
-  <div class="form-group">
+  <div class="form-group  mb-3">
     <button type="submit">Log Plant</button>
   </div>
 </form>
