@@ -1,26 +1,35 @@
-<section class="card">
+<section class="container ">
   <h2 class = "text-center">Login</h2>
 
   {{#if error}}<div class="alert alert-error">{{error}}</div>{{/if}}
 
   {{#if noUser}}
     <div class="alert alert-info">
-      We couldn’t find the username <strong>{{enteredUsername}}</strong>.
+      We couldn’t find the email <strong>{{enteredEmail}}</strong>.
     </div>
-    <a class="btn" href="/register">Register this username</a>
+    <a class="btn" href="/register">Register this email</a>
     <hr />
     <p>Or try again:</p>
   {{/if}}
-
-  <form method="post" action="/login" novalidate>
-    <label>
-      Username
-      <input type="text" name="username" value="{{enteredUsername}}" required />
-    </label>
-    <label>
-      Password
-      <input type="password" name="password" required />
-    </label>
-    <button type="submit" class="btn">Log in</button>
+<div class ="container mt-3">
+  <form  method="post" action="/login" novalidate>
+    <div class = "mt-3">
+    
+      
+      <input type="email" placeholder="Email Address" class = "form-control " name="email" value="{{enteredUsername}}" required />
+    
+    </div>
+    <div class = "mt-3">
+    
+      
+      <input type="password" placeholder="Password" class = "form-control" name="password" required />
+    
+    </div>
+    <button  type="submit" class="btn btn-secondary mt-3">Log in</button>
   </form>
+  <div class="mt-3">
+                <a >Doesn't have account?</a>
+            <a href="/register"> Register</a>
+            </div>
+</div>
 </section>

@@ -4,7 +4,7 @@
 
 :root {
   --primary: #256428;
-  --primary-dark: #256428;
+  --primary-dark: #255223;
   --accent: #81c784;
   --background: #f9fafb;
   --text: #333;
@@ -36,7 +36,7 @@ body {
 ---------------------------------- */
 
 .site-header {
-  background: var(--primary);
+  background: var(--primary-dark);
   color: var(--light-text);
   padding: 1rem 0;
   position: sticky;

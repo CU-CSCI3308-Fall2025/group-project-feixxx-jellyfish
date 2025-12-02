@@ -1,0 +1,384 @@
+{{! views/pages/plantView.hbs }}
+<div class="plant-view-container">
+  <div class="plant-view-header">
+    <a href="/search" class="back-link">← Back to Search</a>
+    <h1>{{plant.name}}</h1>
+    {{#if plant.sci_name}}
+      <h2 class="sci-name">{{plant.sci_name}}</h2>
+    {{/if}}
+  </div>
+
+  <div class="plant-details-grid">
+    <div class="plant-image-section">
+      {{#if plant.photo_url}}
+        <img src="{{plant.photo_url}}" alt="{{plant.name}}" class="plant-main-image" 
+             onerror="this.src='/assets/placeholder-plant.jpg'">
+      {{else}}
+        <div class="no-image-placeholder">
+          <span>No image available</span>
+        </div>
+      {{/if}}
+      
+      {{#if plant.latitude}}
+        <div class="location-section">
+          <h3>📍 Location</h3>
+          <p>Latitude: {{plant.latitude}}</p>
+          <p>Longitude: {{plant.longitude}}</p>
+          <a href="/map?lat={{plant.latitude}}&lng={{plant.longitude}}" class="map-link">
+            View on Map →
+          </a>
+        </div>
+      {{/if}}
+    </div>
+
+    <div class="plant-info-section">
+      <div class="info-card">
+        <h3>Plant Information</h3>
+        <div class="info-grid">
+          {{#if plant.plant_type}}
+            <div class="info-item">
+              <strong>Type:</strong>
+              <span>{{plant.plant_type}}</span>
+            </div>
+          {{/if}}
+          
+          {{#if plant.season}}
+            <div class="info-item">
+              <strong>Bloom Season:</strong>
+              <span>{{plant.season}}</span>
+            </div>
+          {{/if}}
+          
+          {{#if plant.date_observed}}
+            <div class="info-item">
+              <strong>Date Observed:</strong>
+              <span>{{formatDate plant.date_observed}}</span>
+            </div>
+          {{/if}}
+          
+          {{#if plant.is_public}}
+            <div class="info-item">
+              <strong>Visibility:</strong>
+              <span class="public-badge">Public</span>
+            </div>
+          {{else}}
+            <div class="info-item">
+              <strong>Visibility:</strong>
+              <span class="private-badge">Private</span>
+            </div>
+          {{/if}}
+        </div>
+      </div>
+
+      {{#if plant.plant_description}}
+        <div class="description-card">
+          <h3>Description</h3>
+          <p>{{plant.plant_description}}</p>
+        </div>
+      {{/if}}
+
+      <div class="actions-section">
+        {{#if ../user}}
+          <a href="/logPlants?plant_id={{plant.plant_id}}" class="btn btn-primary">
+            Log This Plant
+          </a>
+        {{else}}
+          <a href="/login" class="btn btn-secondary">
+            Log In to Log This Plant
+          </a>
+        {{/if}}
+        
+        <a href="/search?q={{plant.name}}" class="btn btn-outline">
+          Search Similar Plants
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {{#if relatedPlants}}
+    <div class="related-plants-section">
+      <h3>Related Plants</h3>
+      <div class="related-plants-grid">
+        {{#each relatedPlants}}
+          <div class="related-plant-card">
+            <a href="/plants/{{this.plant_id}}">
+              {{#if this.photo_url}}
+                <img src="{{this.photo_url}}" alt="{{this.name}}">
+              {{else}}
+                <div class="related-no-image">No image</div>
+              {{/if}}
+              <h4>{{this.name}}</h4>
+              {{#if this.plant_type}}<p>{{this.plant_type}}</p>{{/if}}
+            </a>
+          </div>
+        {{/each}}
+      </div>
+    </div>
+  {{/if}}
+</div>
+
+{{#unless plant}}
+  <div class="plant-not-found">
+    <h2>Plant Not Found</h2>
+    <p>The plant you're looking for doesn't exist or has been removed.</p>
+    <a href="/search" class="btn btn-primary">Browse All Plants</a>
+  </div>
+{{/unless}}
+
+<style>
+  .plant-view-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .plant-view-header {
+    margin-bottom: 30px;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 15px;
+  }
+
+  .back-link {
+    color: #4CAF50;
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 10px;
+    display: inline-block;
+  }
+
+  .back-link:hover {
+    text-decoration: underline;
+  }
+
+  .sci-name {
+    color: #666;
+    font-style: italic;
+    font-weight: normal;
+    margin-top: 5px;
+  }
+
+  .plant-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 40px;
+  }
+
+  @media (max-width: 768px) {
+    .plant-details-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .plant-main-image {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+
+  .no-image-placeholder {
+    width: 100%;
+    height: 400px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+    margin-bottom: 20px;
+  }
+
+  .location-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #4CAF50;
+  }
+
+  .location-section h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+  }
+
+  .map-link {
+    display: inline-block;
+    margin-top: 10px;
+    color: #4CAF50;
+    text-decoration: none;
+    font-weight: bold;
+  }
+
+  .map-link:hover {
+    text-decoration: underline;
+  }
+
+  .info-card, .description-card {
+    background: white;
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+
+  .info-card h3, .description-card h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    border-bottom: 2px solid #4CAF50;
+    padding-bottom: 10px;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+  }
+
+  .info-item {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .info-item strong {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 5px;
+  }
+
+  .public-badge {
+    background-color: #4CAF50;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    display: inline-block;
+  }
+
+  .private-badge {
+    background-color: #ff9800;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    display: inline-block;
+  }
+
+  .actions-section {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 30px;
+  }
+
+  .btn {
+    padding: 12px 24px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary {
+    background-color: #4CAF50;
+    color: white;
+    border: 2px solid #4CAF50;
+  }
+
+  .btn-primary:hover {
+    background-color: #45a049;
+    border-color: #45a049;
+  }
+
+  .btn-secondary {
+    background-color: #2196F3;
+    color: white;
+    border: 2px solid #2196F3;
+  }
+
+  .btn-secondary:hover {
+    background-color: #1976D2;
+    border-color: #1976D2;
+  }
+
+  .btn-outline {
+    background-color: transparent;
+    color: #4CAF50;
+    border: 2px solid #4CAF50;
+  }
+
+  .btn-outline:hover {
+    background-color: #4CAF50;
+    color: white;
+  }
+
+  .related-plants-section {
+    margin-top: 50px;
+    padding-top: 30px;
+    border-top: 2px solid #e0e0e0;
+  }
+
+  .related-plants-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .related-plant-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .related-plant-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+
+  .related-plant-card a {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .related-plant-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+  }
+
+  .related-no-image {
+    width: 100%;
+    height: 150px;
+    background-color: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+  }
+
+  .related-plant-card h4 {
+    margin: 15px 15px 5px;
+    color: #333;
+  }
+
+  .related-plant-card p {
+    margin: 0 15px 15px;
+    color: #666;
+    font-size: 14px;
+  }
+
+  .plant-not-found {
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .plant-not-found h2 {
+    color: #666;
+    margin-bottom: 20px;
+  }
+</style>

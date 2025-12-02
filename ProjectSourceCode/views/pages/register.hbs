@@ -1,24 +1,71 @@
-<body>
+<div class="container mt-1">
+  <h3 class="text-align">Register</h3>
+  <form action="/register" method="POST">
 
-
-    <div class="container mt-5">
-        <h2>Register</h2>
-        <form action="/register" method="POST">
-            <div class="mb-3">
-                <input type ="text" id="username" name="username"required placeholder="Username" >
-            </div>
-            <div class="mb-3">
-                <input type ="password" id="password" name="password" required placeholder="Password" >
-            </div>
-            <button type="Register" class="bnt btn-primary">Register</button>
-            <div class="mt-3">
-            <a href="/login">Login</a>
-            </div>
-       
-        </form>
+    <!-- First Name -->
+    <div class="mb-3">
+      <label>
+        <input 
+          class="form-control" 
+          type="text" 
+          id="first_name" 
+          name="first_name" 
+          required 
+          placeholder="First Name">
+      </label>
     </div>
 
+    <!-- Last Name -->
+    <div class="mb-3">
+      <label>
+        <input 
+          class="form-control" 
+          type="text" 
+          id="last_name" 
+          name="last_name" 
+          required 
+          placeholder="Last Name">
+      </label>
+    </div>
+
+    <!-- Email -->
+    <div class="mb-3">
+      <label>
+        <input 
+          class="form-control" 
+          type="email" 
+          id="email" 
+          name="email" 
+          required 
+          placeholder="Email Address">
+      </label>
+    </div>
+
+    <!-- Password -->
+    <div class="mb-3">
+      <label>
+        <input 
+          class="form-control" 
+          type="password" 
+          id="password" 
+          name="password" 
+          required
+          placeholder="Password"
+          pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%]).{10,}"
+          title="Password must be at least 10 characters long and include 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character (!,@,#,$,%).">
+      </label>
+    </div>
+
+    <button type="submit" class="btn btn-secondary">Register</button>
+
+    <div class="mt-3">
+      <span>Already have an account?</span>
+      <a href="/login">Login</a>
+    </div>
+
+  </form>
+</div>
 
 
 
-</body>
+
