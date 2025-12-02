@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS plants(
     sci_name VARCHAR(100),
     plant_type VARCHAR(50),
     season VARCHAR (50),
+    is_public BOOLEAN DEFAULT TRUE,
+    date_observed DATE,
     plant_description TEXT,
     Latitude DOUBLE PRECISION,
     Longitude DOUBLE PRECISION,
@@ -34,6 +36,6 @@ CREATE TABLE IF NOT EXISTS plant_logs (
   logged_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   photo_url TEXT,
 
-  is_public BOOLEAN NOT NULL DEFAULT FALSE;
+  is_public BOOLEAN NOT NULL DEFAULT FALSE
 );
 
