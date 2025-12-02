@@ -2,15 +2,15 @@
 
 ## Description
 
-Verdant is a plant logging application which allows users to log their own plants, also implementing a map to track where the plant was found. Users can utilize search to filter through logged plants.
+Our application is designed for plant enthusiasts who want a convenient and organized way to document the plants they encounter in nature or cultivate themselves. Users will be able to log individual plant findings by uploading essential information such as names, descriptions, and photos. Each entry will also include the geographic location where the plant was found, allowing users to build a personal, interactive map of their discoveries. This mapping feature adds both functionality and visual appeal, helping users recall exactly where each plant was located and observe patterns in their findings over time.
 
 ## Contributors
 
-Felix Conant
-Davion Hochhalter
-Ian Kyle
-Mathias Teferra
-Maya Williams
+-Felix Conant
+-Davion Hochhalter
+-Ian Kyle
+-Mathias Teferra
+-Maya Williams
 
 ## Technology Stack
 
@@ -20,6 +20,8 @@ Maya Williams
 - Version Control: Github repository
 
 ## Prerequisites
+
+In order to use Verdant, these will need to be installed:
 
 **placeholder**
 

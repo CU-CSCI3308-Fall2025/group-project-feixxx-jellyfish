@@ -608,6 +608,8 @@ app.get('/api/plants', requireAuth, async (req, res) => {
       FROM plant_logs pl
       JOIN plants p ON pl.plant_id = p.plant_id
       WHERE pl.user_id = $1
+        AND p."latitude" IS NOT NULL
+        AND p."longitude" IS NOT NULL
     `, [currentUserId]);
 
     // Fetch other users' public plant logs
@@ -622,7 +624,10 @@ app.get('/api/plants', requireAuth, async (req, res) => {
              p."longitude"
       FROM plant_logs pl
       JOIN plants p ON pl.plant_id = p.plant_id
-      WHERE pl.is_public = TRUE AND pl.user_id != $1
+      WHERE pl.is_public = TRUE 
+        AND pl.user_id != $1
+        AND p."latitude" IS NOT NULL
+        AND p."longitude" IS NOT NULL
     `, [currentUserId]);
 
     return res.json({
