@@ -14,9 +14,6 @@ require('dotenv').config();
 // after dotenv.config(), set the API key:
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-
-
-
 // Serve static files
 app.use('/assets', express.static(path.join(__dirname,'views', 'pages', 'assets')));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -35,13 +32,12 @@ const dbConfig = {
 
 const db = pgp(dbConfig);
 
-   
-
+// ✅ UPDATED: mailer always uses SENDGRID_FROM, no `from` param
 const mailer = {
-  async sendMail({ from, to, subject, text, html }) {
+  async sendMail({ to, subject, text, html }) {
     const msg = {
       to,
-      from: from || process.env.FROM_EMAIL || process.env.SENDGRID_FROM, 
+      from: process.env.SENDGRID_FROM, 
       subject,
       text,
       html,
@@ -52,7 +48,7 @@ const mailer = {
       console.log('✅ Email sent to', to, 'Status:', response.statusCode);
       return response;
     } catch (err) {
-      console.error('❌ Error sending email with SendGrid:', err);
+      console.error('❌ Error sending email with SendGrid:', err.response?.body || err);
       throw err;
     }
   },
@@ -62,9 +58,6 @@ console.log('🔥 DEBUG SENDGRID CONFIG:', {
   FROM: process.env.FROM_EMAIL || process.env.SENDGRID_FROM,
   HAS_API_KEY: !!process.env.SENDGRID_API_KEY,
 });
-
-
-
 
 // Add these functions
 async function clearDatabaseData() {
@@ -426,9 +419,6 @@ app.post('/register', async (req, res) => {
   }
 });
 
-
-
-
 app.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
 });
@@ -453,8 +443,6 @@ app.get('/logPlants', requireAuth, async (req, res) => {
     res.status(500).send('Server error');
   }
 });
-
-
 
 app.post('/logPlants', requireAuth, async (req, res) => {
   try {
@@ -615,9 +603,9 @@ app.post('/profile/request-email-change', requireAuth, async (req, res) => {
       expiresAt: Date.now() + 10 * 60 * 1000
     };
 
+    // ✅ UPDATED: no `from` passed here
     // Send verification code to *current* email
     await mailer.sendMail({
-      from: process.env.FROM_EMAIL || process.env.SMTP_USER,
       to: currentUser.email,
       subject: 'Plant Logger: Email change verification code',
       text:
@@ -692,8 +680,8 @@ app.post('/profile/confirm-email-change', requireAuth, async (req, res) => {
 
     // Notify old email that change happened
     try {
+      // ✅ UPDATED: no `from` passed here either
       await mailer.sendMail({
-        from: process.env.FROM_EMAIL || process.env.SMTP_USER,
         to: oldEmail,
         subject: 'Plant Logger: Email address changed',
         text:
@@ -714,21 +702,18 @@ app.post('/profile/confirm-email-change', requireAuth, async (req, res) => {
     return res.redirect('/profile');
   }
 });
-   
-
 
 function requireAuth(req, res, next) {
   if (!req.session.user) return res.redirect('/login');
   next();
 }
+
 app.post('/profile/cancel-email-change', requireAuth, (req, res) => {
   req.session.emailChange = null;
   req.session.emailChangeError = null;
   req.session.emailChangeSuccess = 'Email change request cancelled.';
   return res.redirect('/profile');
 });
-
-
 
 // Individual plant view
 app.get('/plants/:id', async (req, res) => {
@@ -806,7 +791,6 @@ async function seedUsers() {
     }
   ];
 
-
   for (const u of users) {
     // await is allowed inside an async function
     console.log(`Seeding user: ${u.first_name}`);
@@ -818,12 +802,10 @@ async function seedUsers() {
       [u.first_name, u.last_name, u.email, hash]
     );
   }
- 
 
   console.log('Sample users seeded');
 }
 
- 
 app.get('/api/plants', requireAuth, async (req, res) => {
   try {
     const currentUserId = req.session.user.id;
@@ -874,7 +856,6 @@ app.get('/api/plants', requireAuth, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
 
 async function seedPlants() {
   const plants = [
@@ -942,7 +923,6 @@ async function seedPlants() {
 
   console.log('Sample plants seeded');
 }
-
 
 //searchbar functionality
 
@@ -1027,8 +1007,6 @@ app.get('/search', async (req, res) => {
   }
 });
 
-
-
 // *****************************************************
 // Section 5 : Start Server
 // *****************************************************
@@ -1036,3 +1014,4 @@ const PORT = process.env.PORT || 3000;
 //app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 module.exports = app.listen(PORT);
+
