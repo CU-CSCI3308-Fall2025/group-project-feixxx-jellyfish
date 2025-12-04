@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS plants(
     sci_name VARCHAR(100),
     plant_type VARCHAR(50),
     season VARCHAR (50),
-    is_public BOOLEAN DEFAULT TRUE,
+    is_public BOOLEAN,
     date_observed DATE,
     plant_description TEXT,
     Latitude DOUBLE PRECISION,
