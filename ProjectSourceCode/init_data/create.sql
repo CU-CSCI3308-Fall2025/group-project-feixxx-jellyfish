@@ -7,7 +7,7 @@ CREATE TABLE users (
 );
 
 
-CREATE TABLE IF NOT EXISTS plants(
+CREATE TABLE plants(
     plant_id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     sci_name VARCHAR(100),
