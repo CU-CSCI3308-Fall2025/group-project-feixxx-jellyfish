@@ -40,6 +40,14 @@ const mailer = nodemailer.createTransport({
   }
 });
 
+console.log("🔥 DEBUG SMTP CONFIG FROM RENDER:", {
+  HOST: process.env.SMTP_HOST,
+  PORT: process.env.SMTP_PORT,
+  USER: process.env.SMTP_USER,
+  PASS_LENGTH: process.env.SMTP_PASS ? process.env.SMTP_PASS.length : 0,
+});
+
+
 
 // Add these functions
 async function clearDatabaseData() {
