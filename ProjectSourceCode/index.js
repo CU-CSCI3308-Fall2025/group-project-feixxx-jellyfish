@@ -82,7 +82,7 @@ const createTables = async () => {
 
         // Plants table - ALTER if is_public doesn't exist
         await db.none(`
-            CREATE TABLE IF NOT EXISTS plants (
+            CREATE TABLE plants (
                 plant_id SERIAL PRIMARY KEY,
                 name VARCHAR(100) NOT NULL,
                 sci_name VARCHAR(100),
