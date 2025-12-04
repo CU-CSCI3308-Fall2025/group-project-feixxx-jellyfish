@@ -6,10 +6,14 @@ const pgp = require('pg-promise')();
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');// for email verification 
+const sgMail = require('@sendgrid/mail'); // for email verification
 const { createGzip } = require('zlib');
 
 require('dotenv').config();
+
+// after dotenv.config(), set the API key:
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
 
 
 
@@ -30,22 +34,34 @@ const dbConfig = {
 };
 
 const db = pgp(dbConfig);
-const mailer = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
+const db = pgp(dbConfig);
+
+const mailer = {
+  async sendMail({ from, to, subject, text, html }) {
+    const msg = {
+      to,
+      from: from || process.env.FROM_EMAIL || process.env.SENDGRID_FROM, 
+      subject,
+      text,
+      html,
+    };
+
+    try {
+      const [response] = await sgMail.send(msg);
+      console.log('✅ Email sent to', to, 'Status:', response.statusCode);
+      return response;
+    } catch (err) {
+      console.error('❌ Error sending email with SendGrid:', err);
+      throw err;
+    }
+  },
+};
+
+console.log('🔥 DEBUG SENDGRID CONFIG:', {
+  FROM: process.env.FROM_EMAIL || process.env.SENDGRID_FROM,
+  HAS_API_KEY: !!process.env.SENDGRID_API_KEY,
 });
 
-console.log("🔥 DEBUG SMTP CONFIG FROM RENDER:", {
-  HOST: process.env.SMTP_HOST,
-  PORT: process.env.SMTP_PORT,
-  USER: process.env.SMTP_USER,
-  PASS_LENGTH: process.env.SMTP_PASS ? process.env.SMTP_PASS.length : 0,
-});
 
 
 
