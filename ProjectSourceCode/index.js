@@ -35,6 +35,32 @@ const dbConfig = {
 
 const db = pgp(dbConfig);
 const db = pgp(dbConfig);
+const mailer = {
+  async sendMail({ from, to, subject, text, html }) {
+    console.log("📤 SEND EMAIL START");
+    console.log("To:", to);
+    console.log("From:", from || process.env.SENDGRID_FROM);
+    console.log("API key exists:", !!process.env.SENDGRID_API_KEY);
+    console.log("API key length:", process.env.SENDGRID_API_KEY?.length);
+
+    try {
+      const [response] = await sgMail.send({
+        to,
+        from: from || process.env.SENDGRID_FROM,
+        subject,
+        text,
+        html,
+      });
+
+      console.log("📬 SENDGRID RESPONSE:", response.statusCode);
+      return response;
+    } catch (err) {
+      console.error("❌ SENDGRID ERROR:", err);
+      throw err;
+    }
+  }
+};
+
 
 const mailer = {
   async sendMail({ from, to, subject, text, html }) {
