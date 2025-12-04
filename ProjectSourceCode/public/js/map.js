@@ -124,7 +124,7 @@ async function loadPlants() {
           ${plant.photo_url ? `<img src="${plant.photo_url}" width="120" style="border-radius:8px;"><br>` : ''}
           <b>${plant.type}</b><br>
           <em>${plant.description}</em><br>
-          <a href="/plant/${plant.id}" target="_blank">View full log</a>
+          <a href="/plants/${plant.id}" target="_blank">View full log</a>
         </div>
       `;
 
@@ -140,7 +140,7 @@ async function loadPlants() {
           ${plant.photo_url ? `<img src="${plant.photo_url}" width="120" style="border-radius:8px;"><br>` : ''}
           <b>${plant.type}</b><br>
           <em>${plant.description}</em><br>
-          <a href="/plant/${plant.id}" target="_blank">View full log</a>
+          <a href="/plants/${plant.id}" target="_blank">View full log</a>
         </div>
       `;
 
