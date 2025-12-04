@@ -63,21 +63,100 @@ async function clearDatabaseData() {
   }
 }
 
-async function createTablesIfNotExist() {
-  try {
-    // Your CREATE TABLE IF NOT EXISTS statements here
-    await db.none(`CREATE TABLE IF NOT EXISTS users (...)`);
-    await db.none(`CREATE TABLE IF NOT EXISTS plants (...)`);
-    await db.none(`CREATE TABLE IF NOT EXISTS users_plants (...)`);
-    await db.none(`CREATE TABLE IF NOT EXISTS plant_logs (...)`);
-    
-    console.log('✅ Tables checked/created');
-    return true;
-  } catch (err) {
-    console.error('❌ Table creation error:', err);
-    return false;
-  }
-}
+
+const createTables = async () => {
+    try {
+        // Users table
+        await db.none(`
+            CREATE TABLE IF NOT EXISTS users (
+                user_id SERIAL PRIMARY KEY,
+                username VARCHAR(50) UNIQUE NOT NULL,
+                email VARCHAR(100) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                is_admin BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_login TIMESTAMP,
+                profile_pic_url TEXT
+            )
+        `);
+
+        // Plants table - ALTER if is_public doesn't exist
+        await db.none(`
+            CREATE TABLE IF NOT EXISTS plants (
+                plant_id SERIAL PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                sci_name VARCHAR(100),
+                plant_type VARCHAR(50),
+                season VARCHAR(50),
+                is_public BOOLEAN DEFAULT TRUE,
+                date_observed DATE,
+                plant_description TEXT,
+                latitude DOUBLE PRECISION,
+                longitude DOUBLE PRECISION,
+                photo_url TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_by INTEGER REFERENCES users(user_id) ON DELETE SET NULL
+            )
+        `);
+
+        // Check and add is_public column if it doesn't exist
+        await db.none(`
+            DO $$ 
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                              WHERE table_name='plants' AND column_name='is_public') THEN
+                    ALTER TABLE plants ADD COLUMN is_public BOOLEAN DEFAULT TRUE;
+                END IF;
+            END $$;
+        `);
+
+        // Users_Plants junction table
+        await db.none(`
+            CREATE TABLE IF NOT EXISTS users_plants (
+                user_plant_id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+                plant_id INTEGER NOT NULL REFERENCES plants(plant_id) ON DELETE CASCADE,
+                is_favorite BOOLEAN DEFAULT FALSE,
+                custom_name VARCHAR(100),
+                custom_notes TEXT,
+                added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, plant_id)
+            )
+        `);
+
+        // Plant logs table
+        await db.none(`
+            CREATE TABLE IF NOT EXISTS plant_logs (
+                log_id SERIAL PRIMARY KEY,
+                plant_id INTEGER NOT NULL REFERENCES plants(plant_id) ON DELETE CASCADE,
+                user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+                log_date DATE DEFAULT CURRENT_DATE,
+                log_type VARCHAR(50),
+                log_description TEXT,
+                health_status VARCHAR(50),
+                photo_url TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        // Create indexes for better performance
+        await db.none('CREATE INDEX IF NOT EXISTS idx_plants_is_public ON plants(is_public)');
+        await db.none('CREATE INDEX IF NOT EXISTS idx_plants_name_lower ON plants(LOWER(name))');
+        await db.none('CREATE INDEX IF NOT EXISTS idx_users_plants_user_id ON users_plants(user_id)');
+        await db.none('CREATE INDEX IF NOT EXISTS idx_plant_logs_plant_id ON plant_logs(plant_id)');
+        await db.none('CREATE INDEX IF NOT EXISTS idx_plant_logs_user_id ON plant_logs(user_id)');
+
+        console.log('All tables created or verified successfully');
+        
+    } catch (error) {
+        console.error('Error creating tables:', error);
+        throw error;
+    }
+};
+
+// Run the function
+createTables();
+
 
 async function initializeDatabase() {
   try {
