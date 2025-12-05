@@ -14,20 +14,30 @@ Our application is designed for plant enthusiasts who want a convenient and orga
 
 ## Technology Stack
 
-- Frontend: HTML, CSS, JavaScript
+- Frontend: HTML, CSS, JavaScript, leaflet.js
 - Backend: Node.js
 - Database: PostgreSQL
 - Version Control: Github repository
+- Testing: Mocha, Chai
+- Docker
 
 ## Prerequisites
 
 In order to use Verdant, these will need to be installed:
-
-**placeholder**
+- Node.js
+- PostgreSQL
+- Docker and Docker Compose
 
 ## Instructions
 
-**placeholder**
+- Clone the repository and change to that directory
+- This project was developed using Docker. Running locally without Docker requires manually installing PostgreSQL, setting environment variables, and running:
+  - npm install
+  - npm start
+- To start all services with Docker
+  - docker-compose up --build
+- Visit appliation at http://localhost:3000 
+
 
 ## Running the tests
 
