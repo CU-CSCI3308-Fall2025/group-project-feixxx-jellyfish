@@ -65,6 +65,11 @@ This will:
 - Run Mocha inside the container  
 - Exit when done  
 
+### Tests
+
+- register API: tests /register route can successfully register new user, and prevents registering an existing user
+- login API: tests /login by checking ability to log in with a valid user + password combination, and that it does not allow logging in with a nonvalid user + password combination.
+
 
 ## Link to deployed app
 
