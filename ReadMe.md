@@ -19,7 +19,7 @@ Our application is designed for plant enthusiasts who want a convenient and orga
 - Database: PostgreSQL
 - Version Control: Github repository
 - Testing: Mocha, Chai
-- Docker
+- Containerization: Docker
 
 ## Prerequisites
 
@@ -30,16 +30,20 @@ In order to use Verdant, these will need to be installed:
 
 ## Instructions
 
-Note: when running this application locally, Docker is reccomended.
+**Note:** when running this application locally, Docker is recommended.
 
-- Clone the repository and change to that directory
-- This project was developed using Docker. Running locally without Docker requires manually installing PostgreSQL, setting environment variables, and running:
-  - npm install
-  - npm start
-- To start all services with Docker
-  - docker-compose up --build
-- Visit application at http://localhost:3000 
+### Running tests locally (without Docker)
 
+- Clone the repository and navigate to the project directory
+- Install dependencies (npm install)
+- Ensure PostgreSQL is running and required environment variables are set.
+- Start the application (npm start)
+- Visit the application at http://localhost:3000
+
+### Running locally with Docker (reccomended)
+
+- Start all services using Docker (docker-compose up --build)
+- Visit the application at http://localhost:3000
 
 ## Running the tests
 
@@ -47,13 +51,20 @@ This project uses **Mocha** and **Chai** for backend testing.
 
 ### Running tests locally (without Docker)
 
-1. Install dependencies
-2. Run the test suite
+1. Install dependencies (npm install)
+2. Run the test suite (npm test)
 
 ### Running tests with Docker
 
-If you prefer to run everything inside the container:
-1. docker-compose run --rm backend npm test
+The `web` service in `docker-compose.yml` is configured to run `npm start`, so to run tests inside the container you need to override the command: docker-compose run --rm web npm test
+
+This will:
+- Build the `web` service container if needed  
+- Mount your project source  
+- Use the same environment variables  
+- Run Mocha inside the container  
+- Exit when done  
+
 
 ## Link to deployed app
 
